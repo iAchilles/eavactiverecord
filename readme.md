@@ -896,7 +896,7 @@ $model = Model::model()->withEavAttributes()->findByPk(1);
 | <a name="eavattribute.p.data_type"></a>data_type | integer | Data type in which all attribute values are stored. To specify a data type of an attribute you can use constants EavAttribute::DATA_TYPE_INT ('IntDataType'), EavAttribute::DATA_TYPE_DATETIME ('DatetimeDataType'), EavAttribute::DATA_TYPE_TEXT ('TextDataType') and EavAttribute::DATA_TYPE_VARCHAR ('VarcharDataType').| EavAttribute
 | label      | string | The attribute lable | EavAttribute
 |<a name="eavattribute.p.name"></a>name | string | The name of the EAV-attribute MUST be unique and follow PHP variable naming convention. | EavAttribute
-|type | integer | The attribute type. To specify the data type of the attribute you can use constants EavAttribute::TYPE_SINLE, EavAttribute::MULTIPLE | EavAttribute
+|type | integer | The attribute type. To specify the data type of the attribute you can use constants EavAttribute::TYPE_SINGLE, EavAttribute::MULTIPLE | EavAttribute
 
 <br>
 
