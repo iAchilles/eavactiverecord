@@ -32,8 +32,8 @@ array(
 'application.components.eav.*',
 'application.components.eav.datatypes.*',
 )
-```   
-4. It requires a cache. If you can't use a cache, add the following code in the application config file: 
+```
+It requires a cache. If you can't use a cache, add the following code in the application config file: 
 ```php
 'components' => array(
         'eavCache' => array(
