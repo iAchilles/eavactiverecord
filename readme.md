@@ -978,7 +978,7 @@ $attribute->setRules($rules);
 (Inherited properties are excluded)
 
 | Property        | Type          | Description | Defined by
-| --              | --            | --          | --
+| -------              | -------            | ------          | -------
 | name | string | The name of the EAV-attributes set. | EavSet
 
 
@@ -1091,7 +1091,7 @@ Saves an attribute value.
 (Inherited properties are excluded)
 
 | Property        | Type          | Description | Defined by
-| --              | --            | --          | ----
+| ------              | ------            | ------          | -------
 | html | string | The rendering result as a string. | EavForm
 | model | EavActiveRecord | the model that will be used to creating form elements. | EavForm
 | return | boolean | If the property value is set to true, the rendering result will not be echoed. You can get the rendering result as a string by accessing the property EavForm::$html. | EavForm
