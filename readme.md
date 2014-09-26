@@ -33,6 +33,13 @@ array(
 'application.components.eav.datatypes.*',
 )
 ```   
+4. It requires a cache. If you can't use a cache, add the following code in the application config file: 
+```php
+'components' => array(
+        'eavCache' => array(
+            'class' => 'CDummyCache'
+        ),
+```
 
 ### Preparing the model for use with EAV-attributes.  
 Each model class that may have EAV-attributes MUST extend the class EavActiveRecord:  
