@@ -463,7 +463,7 @@ if ($model->isEavAttributeMultivalued($attribute))
 (Inherited properies are excluded)  
 
 | Property        | Type          | Description | Defined by
-| -------------   | ------------- | ----------- |
+| -------------   | ------------- | ----------- | ---------
 | eavAttributes    | array         | Returns EAV-attribute values. | EavActiveRecord
 | eav_set_id       | integer       | Foreign key whose value match a primary key in the table eav_set. | EavActiveRecord
 | eavValidators    | array         | Returns the EAV-attribute validators applicable to the current scenario. | EavActiveRecord
@@ -891,7 +891,7 @@ $model = Model::model()->withEavAttributes()->findByPk(1);
 (Inherited properties are excluded)   
 
 | Property        | Type          | Description | Defined by
-| ------------- | -------------------- |
+| ------------- | -------------------- | ----------- | -----------
 | eavValidatorList     | array| Returns all the validation rules for an attribute. If no validation rules exist, an empty array is returned. | EavAttribute
 | <a name="eavattribute.p.data_type"></a>data_type | integer | Data type in which all attribute values are stored. To specify a data type of an attribute you can use constants EavAttribute::DATA_TYPE_INT ('IntDataType'), EavAttribute::DATA_TYPE_DATETIME ('DatetimeDataType'), EavAttribute::DATA_TYPE_TEXT ('TextDataType') and EavAttribute::DATA_TYPE_VARCHAR ('VarcharDataType').| EavAttribute
 | label      | string | The attribute lable | EavAttribute
@@ -921,7 +921,7 @@ public array getEavAttributes( array $names)
 ```
 
 | parameter  | type | description 
-| ------- |----------|
+| ------- |----------| ----------
 | name| array| Names of attributes whose instances should be returned.
 | {return} | array | List of instances of the class EavAttribute (indexed by an attribute name).
 | {throws} | CException | If the given argument is not an array.
@@ -938,7 +938,7 @@ public array getEavValidatorList()
 
 ```
 | parameter  | type | description 
-| ------- |----------|
+| ------- |----------| ---------
 | {return} | array | All the validation rules for an attribute. If no validation rules exist, an empty array is returned.
 
 Returns all the validation rules for an attribute.
@@ -952,7 +952,7 @@ public void setRules(array $rules)
 ```
 
 | parameter  | type | description 
-| ------- |----------|
+| ------- |----------| -----------
 | rules   | array| An array contains nested arrays that are indexed by the name of  a validator. Each nested array contains the definition of a validation rule.
 | {throws} | CException | If the given argument is not an array.
 
@@ -978,7 +978,7 @@ $attribute->setRules($rules);
 (Inherited properties are excluded)
 
 | Property        | Type          | Description | Defined by
-| --              | --            | --          |
+| --              | --            | --          | --
 | name | string | The name of the EAV-attributes set. | EavSet
 
 
@@ -1003,7 +1003,7 @@ public EavSet addEavAttribute( mixed $attribute)
 ```
 
 | parameter  | type | description 
-| ------- |----------|
+| ------- |----------| ----
 | attribute| mixed| It must be either an instance of EavAttribute class or the primary key of an attribute which must be saved.
 | {return} | EavSet | EavSet instance.
 | {throws} | CException | Incorrect argument passed.
@@ -1020,7 +1020,7 @@ public EavSet removeEavAttribute( mixed $attribute)
 ```
 
 | parameter  | type | description 
-| ------- |----------|
+| ------- |----------| -----
 | attribute| mixed| It must be either an instance of EavAttribute class or the primary key of an attribute which must be removed.
 | {return} | EavSet | EavSet instance.
 | {throws} | CException | Incorrect argument passed.
@@ -1055,7 +1055,7 @@ public int deleteValue(EavActiveRecord $entity, EavAttribute $attribute)
 ```
 
 | parameter  | type | description 
-| ------- |----------|
+| ------- |----------| ------
 | entity| EavActiveRecord| An instance of the derived class.
 | attribute| EavAttribute| EavAttribute instance
 | {return} | int | Returns number of affected rows.
@@ -1071,7 +1071,7 @@ public int saveValue(EavActiveRecord $entity, EavAttribute $attribute, mixed $va
 ```
 
 | parameter  | type | description 
-| ------- |----------|
+| ------- |----------| ------
 | entity| EavActiveRecord| An instance of the derived class.
 | attribute| EavAttribute| EavAttribute instance
 | attribute| mixed| EavAttribute value(s) that must be saved.
@@ -1091,7 +1091,7 @@ Saves an attribute value.
 (Inherited properties are excluded)
 
 | Property        | Type          | Description | Defined by
-| --              | --            | --          |
+| --              | --            | --          | ----
 | html | string | The rendering result as a string. | EavForm
 | model | EavActiveRecord | the model that will be used to creating form elements. | EavForm
 | return | boolean | If the property value is set to true, the rendering result will not be echoed. You can get the rendering result as a string by accessing the property EavForm::$html. | EavForm
