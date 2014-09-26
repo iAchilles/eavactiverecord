@@ -464,14 +464,14 @@ if ($model->isEavAttributeMultivalued($attribute))
 
 | Property        | Type          | Description | Defined by
 | -------------   | ------------- | ----------- |
-|eavAttributes    | array         | Returns EAV-attribute values. | EavActiveRecord
-|eav_set_id       | integer       | Foreign key whose value match a primary key in the table eav_set. | EavActiveRecord
-|eavValidators    | array         | Returns the EAV-attribute validators applicable to the current scenario. | EavActiveRecord
-|eavValidatorList | CList         | Returns all the EAV-attribute validators. | EavActiveRecord
-|entity           | string        | Returns the name of the entity based on the class name. | EavActiveRecord
-|isEavEnabled     | boolean       | Determines whether the model may have EAV-attributes. | EavActiveRecord
-|oldEavSetPrimaryKey | integer    | Returns the old primary key value of the EAV-attribute set. | EavActiveRecord
-|safeEavAttributeNames | array    | Returns the EAV-attribute names that are safe to be massively assigned. A safe attribute is one that is associated with a validation rule in the current scenario. | EavActiveRecord
+| eavAttributes    | array         | Returns EAV-attribute values. | EavActiveRecord
+| eav_set_id       | integer       | Foreign key whose value match a primary key in the table eav_set. | EavActiveRecord
+| eavValidators    | array         | Returns the EAV-attribute validators applicable to the current scenario. | EavActiveRecord
+| eavValidatorList | CList         | Returns all the EAV-attribute validators. | EavActiveRecord
+| entity           | string        | Returns the name of the entity based on the class name. | EavActiveRecord
+| isEavEnabled     | boolean       | Determines whether the model may have EAV-attributes. | EavActiveRecord
+| oldEavSetPrimaryKey | integer    | Returns the old primary key value of the EAV-attribute set. | EavActiveRecord
+| safeEavAttributeNames | array    | Returns the EAV-attribute names that are safe to be massively assigned. A safe attribute is one that is associated with a validation rule in the current scenario. | EavActiveRecord
 
 <br>
 
