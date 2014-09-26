@@ -1,0 +1,17 @@
+{
+    "name": "iachilles/eavactiverecord",
+    "description": "Implements entity-attribute-value pattern and provides a simple way to work with EAV-attributes.",
+    "keywords": ["yii", "extension", "eav", "activerecord", "object-attribute-value"],
+    "homepage": "https://github.com/iAchilles/eavactiverecord",
+    "type": "yii-extension",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Igor Manturov, Jr.",
+            "email": "igor.manturov.jr@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.1.0"
+    }
+}
