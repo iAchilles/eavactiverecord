@@ -14,7 +14,7 @@
  *
  * @property integer $eav_set_id Foreign key whose value match a primary key in the table eav_set.
  *
- * @version 1.0.0
+ * @version 1.0.1
  */
 class EavActiveRecord extends CActiveRecord
 {
@@ -429,18 +429,18 @@ class EavActiveRecord extends CActiveRecord
                             }
                         }
                     }
-                    $this->setOldPrimaryKey($this->getPrimaryKey());
 
                     if ((is_null($modelAttributes) && !is_null($this->eav_set_id))
                         || (in_array('eav_set_id', $modelAttributes) && !is_null($this->eav_set_id)))
                     {
                         $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
                             : $this->getEavAttributes($eavAttributes);
+
                         foreach ($attributes as $name => $value)
                         {
                             $attribute = $this->eavAttributeInstances[$name];
                             $class = EavValue::model($attribute->data_type);
-                            $class->saveValue($this, $attribute, $value);
+                            $class->insertValue($this, $attribute, $value);
                         }
                         $this->setOldEavSetPrimaryKey();
                         $this->storedEavAttributeInstances = $this->eavAttributeInstances;
@@ -450,6 +450,7 @@ class EavActiveRecord extends CActiveRecord
                     {
                         $transaction->commit();
                     }
+                    $this->setOldPrimaryKey($this->getPrimaryKey());
                     $this->afterSave();
                     $this->setIsNewRecord(false);
                     $this->setScenario('update');
@@ -553,11 +554,33 @@ class EavActiveRecord extends CActiveRecord
                     $this->storedEavAttributeInstances = $this->eavAttributeInstances;
                 }
 
+                $pk = is_null($this->primaryKey()) ? $this->getMetaData()->tableSchema->primaryKey : $this->primaryKey();
+                if (is_null($modelAttributes) || in_array($pk, $modelAttributes))
+                {
+                    if ($this->getOldPrimaryKey() != $this->getPrimaryKey())
+                    {
+                        if (!empty($this->storedEavAttributeInstances))
+                        {
+                            $dataTypes = array();
+                            foreach ($this->storedEavAttributeInstances as $attr)
+                            {
+                                if (!in_array($attr->data_type, $dataTypes))
+                                {
+                                    array_push($dataTypes, $attr->data_type);
+                                    $class = EavValue::model($attr->data_type);
+                                    $class->updateEntityPrimaryKey($this);
+                                }
+                            }
+                            unset($dataTypes);
+                        }
+                    }
+                }
+
+                $this->setOldPrimaryKey($this->getPrimaryKey());
                 if (isset($transaction))
                 {
                     $transaction->commit();
                 }
-                $this->setOldPrimaryKey($this->getPrimaryKey());
                 $this->afterSave();
                 return true;
             }
@@ -782,7 +805,7 @@ class EavActiveRecord extends CActiveRecord
 
     /**
      * Checks if the given attribute may hold multiple values.
-     * @param $name The attribute name.
+     * @param string $name The attribute name.
      * @return boolean Returns true if an attribute with the specified name may hold multiple values, otherwise false.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
