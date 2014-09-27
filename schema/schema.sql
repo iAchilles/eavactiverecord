@@ -22,6 +22,7 @@ CREATE TABLE `eav_attribute_set` (
   PRIMARY KEY (`eav_attribute_id`,`eav_set_id`),
   KEY `no_eav_attribute_set_attribute_id` (`eav_attribute_id`) USING BTREE,
   KEY `no_eav_attribute_set_set_id` (`eav_set_id`) USING BTREE,
+  KEY `no_eav_attribute_set_weight` (`weight`) USING BTREE
   CONSTRAINT `fk_eav_attribute_id_eav_attribute_set` FOREIGN KEY (`eav_attribute_id`) REFERENCES `eav_attribute` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_eav_set_id_eav_attribute_set` FOREIGN KEY (`eav_set_id`) REFERENCES `eav_set` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
