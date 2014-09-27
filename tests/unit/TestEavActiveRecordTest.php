@@ -1084,7 +1084,7 @@ class TestEavActiveRecordTest extends CDbTestCase
 
     public function testFindAll()
     {
-        $model = TestEavActiveRecord::model()->withEavAttributes()->findAll(array('order' => 't.id ASC'));
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findAll();
         $this->assertEquals(6, count($model));
         $this->assertEquals('entity1-1-2012-11-01 10:10:25-eavEnabled', $model[0]->LastName);
         $this->assertEquals('entity4-6-eavEnabled', $model[5]->LastName);
@@ -1351,47 +1351,6 @@ class TestEavActiveRecordTest extends CDbTestCase
         $this->assertEquals(1, TestEavActiveRecord::model()->count('id = :id', array(':id' => 1)));
         $this->assertEquals(0, TestEavActiveRecord::model()->count('t.id = :id AND ::varcharMultiple = :d',
             array(':id' => 1, 'd' => 'one')));
-    }
-
-
-    public function testIssue3()
-    {
-        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
-        $model->id = 747;
-        $model->varcharMultiple = array(1);
-        $this->assertTrue($model->updateWithEavAttributes(array('name', 'eav_set_id', 'varcharMultiple')));
-
-        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
-        $this->assertInstanceOf('EavActiveRecord', $model);
-        $this->assertContains('1', $model->varcharMultiple);
-        $model->id = 777;
-        $model->updateWithEavAttributes();
-
-        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
-        $this->assertNull($model);
-        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(777);
-        $this->assertInstanceOf('EavActiveRecord', $model);
-        $this->assertContains('1', $model->varcharMultiple);
-        $model->id = 3;
-        $model->varcharMultiple = array(5,2,3);
-        $model->updateWithEavAttributes();
-
-        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
-        $this->assertInstanceOf('EavActiveRecord', $model);
-        $this->assertContains('2', $model->varcharMultiple);
-        $this->assertContains('5', $model->varcharMultiple);
-        $this->assertContains('3', $model->varcharMultiple);
-
-        $model = new TestEavActiveRecord();
-        $model->attachEavSet(1);
-        $model->datetimeSingle = '1997-12-12 12:12:12';
-        $model->id = 787;
-        $model->insertWithEavAttributes();
-
-        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(787);
-        $this->assertInstanceOf('EavActiveRecord', $model);
-        $this->assertEquals('1997-12-12 12:12:12', $model->datetimeSingle);
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 }

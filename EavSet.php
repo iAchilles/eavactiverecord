@@ -78,9 +78,9 @@
  *
  *
  * @property integer $id Primary surrogate key.
- * @property string $name The attribute set name.
+ * @property string $name Name the set of attributes.
  *
- * @version 1.0.1
+ * @version 1.0.0
  */
 class EavSet extends CActiveRecord
 {
@@ -176,10 +176,10 @@ class EavSet extends CActiveRecord
     
     /**
      * Adds a new attribute to the set.
-     * @param mixed $attribute It must be either an instance of the class EavAttribute or the primary key value of the
-     * instance that must be added.
+     * @param mixed $attribute It must be either an instance of EavAttribute class or the primary key of an attribute
+     * which must be added.
      * @return EavSet
-     * @throws CException Passed wrong type of argument.
+     * @throws CException
      */
     public function addEavAttribute($attribute)
     {
@@ -202,10 +202,10 @@ class EavSet extends CActiveRecord
     
     /**
      * Removes the given attribute from the set.
-     * @param mixed $attribute It must be either an instance of the class EavAttribute or the primary key value of the
-     * instance that must be removed.
+     * @param mixed $attribute It must be either an instance of EavAttribute class or the primary key of an attribute
+     * which must be removed.
      * @return EavSet
-     * @throws CException Passed wrong type of argument.
+     * @throws CException
      */
     public function removeEavAttribute($attribute)
     {
@@ -227,9 +227,9 @@ class EavSet extends CActiveRecord
 
 
     /**
-     * Returns the maximum value of the attribute weight in the set.
+     * Returns the maximum weight of an attribute in the given set.
      * @param integer $id The primary key of the set.
-     * @return integer The maximum value of the attribute weight in the set.
+     * @return integer Maximum weight of an attribute in the given set.
      */
     public function getMaxWeight($id)
     {
@@ -237,19 +237,7 @@ class EavSet extends CActiveRecord
             ->from('{{eav_attribute_set}}')->where('eav_set_id = :id', array(':id' => $id))->queryScalar();
         return $weight === false ? 0 : (int) $weight;
     }
-
-
-    /**
-     * Returns the array of objects of the class EavAttribute related to the set. An empty array will be returned if the
-     * set does not contain EAV attributes.
-     * @return array The array of objects of the class EavAttribute related to the set.
-     * @since Version 1.0.1
-     */
-    public function getEavAttributes()
-    {
-        return $this->getRelated(EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME);
-    }
-
+    
     
     /**
      * Sets an attribute which must be added to the set.
