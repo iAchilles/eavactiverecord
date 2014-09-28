@@ -657,10 +657,10 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Sets a value of the named EAV-attribute. You may also use $this->eavAttributeName to set the attribute value.
-     * @param string $name Attribute name.
-     * @param mixed $value Attribute value.
-     * @return boolean Whether the EAV-attribute exists and the assignment is conducted successfully.
+     * Sets a value of the named EAV attribute. You may also use $this->eavAttributeName to set the attribute value.
+     * @param string $name The attribute name.
+     * @param mixed $value The attribute value.
+     * @return boolean Whether the EAV attribute exists and the assignment is conducted successfully.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function setEavAttribute($name, $value)
@@ -685,10 +685,10 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Returns the named EAV-attribute value. If the given attribute has no value it returns either an empty array for
-     * a multi-value attribute or null for a single-value attribute.
-     * @param string $name Attribute name.
-     * @return mixed EAV-attribute value.
+     * Returns the named EAV attribute value. If the given attribute has no value it returns either an empty array for
+     * a multivalued attribute or null for a single valued attribute.
+     * @param string $name The attribute name.
+     * @return mixed The EAV attribute value.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function getEavAttribute($name)
@@ -734,10 +734,10 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Returns EAV-attribute values indexed by EAV-attribute names.
-     * @param mixed $names Names of EAV-attributes whose value needs to be returned. If this is null (default), then all
-     * EAV-attribute values will be returned.
-     * @return array EAV-attribute values indexed by EAV-attribute names.
+     * Returns EAV attribute values indexed by EAV attribute names.
+     * @param mixed $names Names of EAV attributes whose values needs to be returned. If this is null (default), then all
+     * EAV attribute values will be returned.
+     * @return array EAV attribute values indexed by EAV attribute names.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function getEavAttributes($names = null)
@@ -769,9 +769,9 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Checks if this record has the named EAV-attribute.
+     * Checks if the model has the named EAV-attribute.
      * @param string $name The attribute name.
-     * @return boolean Whether this record has the named EAV-attribute.
+     * @return boolean Whether the model has the named EAV-attribute.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function hasEavAttribute($name)
@@ -787,8 +787,8 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Returns the names of all EAV-attributes attached to the model.
-     * @return array The list of all EAV-attribute names.
+     * Returns the names of all EAV attributes that are attached to the model.
+     * @return array The list of all EAV attribute names that are attached to the model.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function eavAttributeNames()
@@ -1159,7 +1159,7 @@ class EavActiveRecord extends CActiveRecord
 
         if (!is_null($set))
         {
-            $attributes = $set->getRelated(self::EAV_ATTRIBUTE_RELATION_NAME);
+            $attributes = $set->getEavAttributes();
             if (!empty($attributes))
             {
                 foreach ($attributes as $attr)
@@ -1200,7 +1200,7 @@ class EavActiveRecord extends CActiveRecord
         $set = $this->getRelated(self::EAV_SET_RELATION_NAME, true);
         if (!is_null($set))
         {
-            $attributes = $set->getRelated(self::EAV_ATTRIBUTE_RELATION_NAME);
+            $attributes = $set->getEavAttributes();
             if (!empty($attributes))
             {
                 foreach ($attributes as $attr)
@@ -1249,7 +1249,7 @@ class EavActiveRecord extends CActiveRecord
         $set = $this->getRelated(self::EAV_SET_RELATION_NAME);
         if (!is_null($set))
         {
-            $attributes = $set->getRelated(self::EAV_ATTRIBUTE_RELATION_NAME);
+            $attributes = $set->getEavAttributes();
             foreach ($attributes as $attr)
             {
                 if (!$this->hasAttribute($attr->name) && !$this->getMetaData()->hasRelation($attr->name))
@@ -1580,7 +1580,7 @@ class EavActiveRecord extends CActiveRecord
             {
                 return false;
             }
-            $attributes = $set->getRelated(self::EAV_ATTRIBUTE_RELATION_NAME);
+            $attributes = $set->getEavAttributes();
             if(empty($attributes))
             {
                 return false;
@@ -1641,7 +1641,7 @@ class EavActiveRecord extends CActiveRecord
                 {
                     continue;
                 }
-                $attributes = $set->getRelated(self::EAV_ATTRIBUTE_RELATION_NAME);
+                $attributes = $set->getEavAttributes();
                 if (empty($attributes))
                 {
                     continue;

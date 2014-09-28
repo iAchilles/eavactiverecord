@@ -1,18 +1,10 @@
-<?php
-$db = $this->getDbConnection();
-
-if ($db->schema->getTable('eav_set', true) === null)
-{
-    $sql = "CREATE TABLE `eav_set` (
-`id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary surrogate key',
+CREATE TABLE `eav_set` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary surrogate key',
   `name` varchar(255) NOT NULL COMMENT 'Set name',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8";
-    $db->createCommand($sql)->execute();
-}
-if ($db->schema->getTable('eav_attribute', true) === null)
-{
-    $sql = "CREATE TABLE `eav_attribute` (
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `eav_attribute` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary surrogate key',
   `type` tinyint(1) unsigned NOT NULL COMMENT '0 if the attribute can have only one value or 1 if the attribute can have multiple values',
   `data_type` varchar(255) NOT NULL COMMENT 'The attribute data type',
@@ -21,26 +13,21 @@ if ($db->schema->getTable('eav_attribute', true) === null)
   `data` text COMMENT 'The serialized data',
   PRIMARY KEY (`id`),
   UNIQUE KEY `un_eav_attribute_name` (`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8";
-    $db->createCommand($sql)->execute();
-}
-if ($db->schema->getTable('eav_attribute_set', true) === null)
-{
-    $sql = "CREATE TABLE `eav_attribute_set` (
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `eav_attribute_set` (
   `eav_attribute_id` int(10) unsigned NOT NULL COMMENT 'Composite primary key',
   `eav_set_id` int(10) unsigned NOT NULL COMMENT 'Composite primary key',
   `weight` int(10) NOT NULL COMMENT 'The weight of the attribute',
   PRIMARY KEY (`eav_attribute_id`,`eav_set_id`),
   KEY `no_eav_attribute_set_attribute_id` (`eav_attribute_id`) USING BTREE,
   KEY `no_eav_attribute_set_set_id` (`eav_set_id`) USING BTREE,
+  KEY `no_eav_attribute_set_weight` (`weight`) USING BTREE,
   CONSTRAINT `fk_eav_attribute_id_eav_attribute_set` FOREIGN KEY (`eav_attribute_id`) REFERENCES `eav_attribute` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_eav_set_id_eav_attribute_set` FOREIGN KEY (`eav_set_id`) REFERENCES `eav_set` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $db->createCommand($sql)->execute();
-}
-if ($db->schema->getTable('eav_attribute_date', true) === null)
-{
-    $sql = "CREATE TABLE `eav_attribute_date` (
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `eav_attribute_date` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary surrogate key',
   `eav_attribute_id` int(10) unsigned NOT NULL COMMENT 'Foreign key references eav_attribute(id)',
   `entity_id` int(11) NOT NULL COMMENT 'Primary key of an entity',
@@ -51,12 +38,9 @@ if ($db->schema->getTable('eav_attribute_date', true) === null)
   KEY `no_eav_attribute_date_eav_attribute_id` (`eav_attribute_id`) USING BTREE,
   KEY `no_eav_attribute_date_value` (`value`) USING BTREE,
   CONSTRAINT `fk_eav_attribute_id_eav_attribute_date` FOREIGN KEY (`eav_attribute_id`) REFERENCES `eav_attribute` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8";
-    $db->createCommand($sql)->execute();
-}
-if ($db->schema->getTable('eav_attribute_varchar', true) === null)
-{
-    $sql = "CREATE TABLE `eav_attribute_varchar` (
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `eav_attribute_varchar` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary surrogate key',
   `eav_attribute_id` int(10) unsigned NOT NULL COMMENT 'Foreign key references eav_attribute(id)',
   `entity_id` int(11) NOT NULL COMMENT 'Primary key of an entity',
@@ -66,12 +50,9 @@ if ($db->schema->getTable('eav_attribute_varchar', true) === null)
   KEY `no_eav_attribute_varchar_entity_entity_id` (`entity`,`entity_id`) USING BTREE,
   KEY `no_eav_attribute_varchar_eav_attribute_id` (`eav_attribute_id`) USING BTREE,
   CONSTRAINT `fk_eav_attribute_id_eav_attribute_varchar` FOREIGN KEY (`eav_attribute_id`) REFERENCES `eav_attribute` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8";
-    $db->createCommand($sql)->execute();
-}
-if ($db->schema->getTable('eav_attribute_int', true) === null)
-{
-    $sql = "CREATE TABLE `eav_attribute_int` (
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `eav_attribute_int` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary surrogate key',
   `eav_attribute_id` int(10) unsigned NOT NULL COMMENT 'Foreign key references eav_attribute(id)',
   `entity_id` int(11) NOT NULL COMMENT 'Primary key of an entity',
@@ -82,12 +63,9 @@ if ($db->schema->getTable('eav_attribute_int', true) === null)
   KEY `no_eav_attribute_int_eav_attribute_id` (`eav_attribute_id`) USING BTREE,
   KEY `no_eav_attribute_int_value` (`value`) USING BTREE,
   CONSTRAINT `fk_eav_attribute_id_eav_attribute_int` FOREIGN KEY (`eav_attribute_id`) REFERENCES `eav_attribute` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8";
-    $db->createCommand($sql)->execute();
-}
-if ($db->schema->getTable('eav_attribute_text', true) === null)
-{
-    $sql = "CREATE TABLE `eav_attribute_text` (
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `eav_attribute_text` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary surrogate key',
   `eav_attribute_id` int(10) unsigned NOT NULL COMMENT 'Foreign key references eav_attribute(id)',
   `entity_id` int(11) NOT NULL COMMENT 'Primary key of an entity',
@@ -97,18 +75,4 @@ if ($db->schema->getTable('eav_attribute_text', true) === null)
   KEY `no_eav_attribute_text_entity_entity_id` (`entity`,`entity_id`) USING BTREE,
   KEY `no_eav_attribute_text_eav_attribute_id` (`eav_attribute_id`) USING BTREE,
   CONSTRAINT `fk_eav_attribute_id_eav_attribute_text` FOREIGN KEY (`eav_attribute_id`) REFERENCES `eav_attribute` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8";
-    $db->createCommand($sql)->execute();
-}
-if($db->schema->getTable('eav_test_entity', true) === null)
-{
-    $sql = "CREATE TABLE `eav_test_entity` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) DEFAULT NULL,
-  `eav_set_id` int(10) unsigned DEFAULT NULL COMMENT 'Foreign key references eav_set(id)',
-  PRIMARY KEY (`id`),
-  KEY `no_eav_test_entity_eav_set_id` (`eav_set_id`),
-  CONSTRAINT `fk_eav_set_id_eav_test_entity` FOREIGN KEY (`eav_set_id`) REFERENCES `eav_set` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8";
-    $db->createCommand($sql)->execute();
-}
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

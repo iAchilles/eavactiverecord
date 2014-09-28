@@ -130,4 +130,31 @@ class EavSetTest extends CDbTestCase
 
         Yii::app()->fixture->load($this->fixtures);
     }
+
+
+    public function testGetMaxWeight()
+    {
+        $model = EavSet::model()->findByPk(2);
+        $this->assertEquals(2, $model->getMaxWeight());
+    }
+
+
+    public function testUpdateEavAttributeOrder()
+    {
+        $model = EavSet::model()->findByPk(2);
+        $attr = $model->getEavAttributes();
+        $keys = array_keys($attr);
+        $this->assertEquals(1, $keys[0]);
+        $this->assertEquals(2, $keys[1]);
+        $model->updateEavAttributeOrder(array(2,1));
+
+
+        $model = EavSet::model()->findByPk(2);
+        $attr = $model->getEavAttributes();
+        $keys = array_keys($attr);
+        $this->assertEquals(2, $keys[0]);
+        $this->assertEquals(1, $keys[1]);
+
+        Yii::app()->fixture->load($this->fixtures);
+    }
 } 
