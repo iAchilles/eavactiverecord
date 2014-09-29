@@ -655,6 +655,137 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
+     * Saves a selected list of EAV attributes. Unlike EavActiveRecord::saveWithEavAttributes(), this method only saves the
+     * specified EAV attributes of an existing active record and does NOT call either beforeSave or afterSave.
+     * Also note that this method does neither attribute filtering nor validation. So do not use this method with
+     * untrusted data (such as user posted data).
+     * This method is similar to the method CActiveRecord::saveAttributes() with one exception - it works with EAV
+     * attributes.
+     * @param array $attributes EAV attributes to be updated. Each element represents an EAV attribute name or an EAV
+     * attribute value indexed by its name. If the latter, the record's EAV attribute will be changed accordingly before
+     * saving.
+     * @return boolean
+     * @throws CDbException If the active record is new.
+     * @throws CException If the instantiated model does not support EAV attributes.
+     * @since Version 1.0.1
+     */
+    public function saveEavAttributes($attributes)
+    {
+        if (!$this->eavEnable)
+        {
+            throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
+            support EAV attributes.');
+        }
+        else
+        {
+            if (!$this->getIsNewRecord())
+            {
+                if (empty($attributes))
+                {
+                    return false;
+                }
+
+                if (is_null($this->getDbConnection()->getCurrentTransaction()))
+                {
+                    $transaction = $this->getDbConnection()->beginTransaction();
+                }
+                try
+                {
+                    $names = array();
+                    foreach ($attributes as $name => $value)
+                    {
+                        if (is_integer($name))
+                        {
+                            array_push($names, $value);
+                        }
+                        else
+                        {
+                            array_push($names, $name);
+                        }
+                    }
+                    if (array_intersect($this->eavAttributeNames(), $names) === array())
+                    {
+                        if (isset($transaction))
+                        {
+                            $transaction->commit();
+                        }
+                        return false;
+                    }
+
+                    if (!empty($this->storedEavAttributeInstances))
+                    {
+                        foreach ($this->storedEavAttributeInstances as $attribute)
+                        {
+                            if (!array_key_exists($attribute->name, $this->eavAttributeInstances))
+                            {
+                                $class = EavValue::model($attribute->data_type);
+                                $class->deleteValue($this, $attribute);
+                            }
+                        }
+                    }
+
+                    $eavSetPk = is_null($this->getRelated(self::EAV_SET_RELATION_NAME))
+                        ? null : $this->getRelated(self::EAV_SET_RELATION_NAME)->id;
+                    if ($eavSetPk != $this->getOldEavSetPrimaryKey())
+                    {
+                        $this->updateByPk($this->getOldPrimaryKey(), array('eav_set_id' => $eavSetPk));
+                    }
+
+                    foreach ($attributes as $name => $value)
+                    {
+                        if (is_integer($name))
+                        {
+                            if ($this->hasEavAttribute($value))
+                            {
+                                $val = $this->getEavAttribute($value);
+                                if ($val !== $this->oldEavAttributes[$value])
+                                {
+                                    $attribute = $this->eavAttributeInstances[$value];
+                                    $class = EavValue::model($attribute->data_type);
+                                    $class->saveValue($this, $attribute, $val);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if ($this->hasEavAttribute($name))
+                            {
+                                $this->setEavAttribute($name, $value);
+                                if ($value !== $this->oldEavAttributes[$name])
+                                {
+                                    $attribute = $this->eavAttributeInstances[$name];
+                                    $class = EavValue::model($attribute->data_type);
+                                    $class->saveValue($this, $attribute, $value);
+                                }
+                            }
+                        }
+                    }
+                    $this->setOldEavSetPrimaryKey();
+                    $this->storedEavAttributeInstances = $this->eavAttributeInstances;
+                    if (isset($transaction))
+                    {
+                        $transaction->commit();
+                    }
+                    return true;
+                }
+                catch (CException $ex)
+                {
+                    if (isset($transaction))
+                    {
+                        $transaction->rollback();
+                    }
+                    throw $ex;
+                }
+            }
+            else
+            {
+                throw new CDbException(Yii::t('yii','The active record cannot be updated because it is new.'));
+            }
+        }
+    }
+
+
+    /**
      * Sets a value of the named EAV attribute. You may also use $this->eavAttributeName to set the attribute value.
      * @param string $name The attribute name.
      * @param mixed $value The attribute value.
@@ -1993,5 +2124,4 @@ class EavActiveRecord extends CActiveRecord
             $db->createCommand()->dropColumn($this->tableName(), 'eav_set_id');
         }
     }
-
 }
