@@ -320,26 +320,17 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Saves the current record and also records that contain EAV-attribute values that have been set on this model.
-     * The record is inserted as a row into the database table if its CActiveRecord::$isNewRecord
-     * property is true (usually the case when the record is created using the 'new'
-     * operator). Otherwise, it will be used to update the corresponding row in the table
-     * (usually the case if the record is obtained using one of those 'find' methods.)
+     * This method does the same thing as the method CActiveRecord::save(), except that it also saves EAV attribute
+     * values.
+     * In cases when tracking of EAV attribute changes is not required, you can use the method CActiveRecord::save().
+     * Note, if you assign a new value to the primary key of the model you must use this method, because it takes care
+     * of referential integrity.
      *
-     * Validation will be performed before saving the record. If the validation fails,
-     * the record will not be saved. You can call CActiveRecord::getErrors() to retrieve the
-     * validation errors.
-     *
-     * If the record is saved via insertion, its CActiveRecord::$isNewRecord property will be
-     * set false, and its CActiveRecord::$scenario property will be set to be 'update'.
-     * And if its primary key is auto-incremental and is not set before insertion,
-     * the primary key will be populated with the automatically generated key value.
-     *
-     * @param bool $runValidation whether to perform validation before saving the record.
-     * If the validation fails, the record will not be saved to database.
-     * @param array $attributes List of attributes that need to be saved (you can also specify EAV-attributes).
-     * Defaults to null, meaning all attributes that are loaded from DB and all related EAV-attributes will be saved.
-     * Note, IF LIST OF ATTRIBUTES DOES NOT CONTAIN "eav_set_id", EAV-attributes WILL NOT be saved.
+     * @param bool $runValidation whether to perform validation before saving the record. If the validation fails,
+     * the record will not be saved to database.
+     * @param array $attributes List of attributes that need to be saved, you can also specify EAV attribute names.
+     * Defaults to null, meaning all attributes that are loaded from DB and all related EAV attributes will be saved.
+     * Note, IF THE LIST OF ATTRIBUTES DOES NOT CONTAIN "eav_set_id", EAV-attributes WILL NOT be saved.
      * @return boolean Whether the saving succeeds.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
@@ -361,13 +352,13 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Inserts a row into the table based on this active record attributes. It also inserts rows into tables which
-     * store EAV-attributes values. Note, validation is not performed in this method.
-     * After the records are inserted to DB successfully, its isNewRecord property will be set false, and its scenario
-     * property will be set to be 'update'.
-     * @param null|array $attributes List of attributes that need to be saved (you can also specify EAV-attributes).
-     * Defaults to null, meaning all attributes that are loaded from DB and all EAV-attributes will be saved.
-     * Note, IF LIST OF ATTRIBUTES DOES NOT CONTAIN "eav_set_id", values of EAV-attribute WILL NOT be saved.
+     * This method does the same thing as the method CActiveRecord::insert(), except that it also inserts row(s) into
+     * table(s) that stores EAV attribute values.
+     * If you insert a new record that does not contain EAV attributes, you can use the method CActiveRecord::insert().
+     *
+     * @param null|array $attributes List of attributes that need to be saved, you can also specify EAV attribute names.
+     * Defaults to null, meaning all attributes that are loaded from DB and all related EAV attributes will be saved.
+     * Note, IF LIST OF ATTRIBUTES DOES NOT CONTAIN "eav_set_id", EAV-attributes WILL NOT be saved.
      * @return boolean Whether the attributes are valid and the record is inserted successfully.
      * @throws CDbException If the active record is not new.
      * @throws CException If the instantiated model does not support EAV attributes.
@@ -477,11 +468,15 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Updates the rows represented by this active record and also updates rows that contain EAV-attribute values.
-     * Validation is not performed in this method.
-     * @param array $attributes List of attributes that need to be saved (you can also specify EAV-attributes). Defaults
-     * to null, meaning all attributes that are loaded from DB and all EAV-attributes will be saved.
-     * Note, IF LIST OF ATTRIBUTES DOES NOT CONTAIN "eav_set_id", values of EAV-attributes WILL NOT be saved.
+     * This method does the same thing as the method CActiveRecord::update(), except that it also updates EAV attribute
+     * values.
+     * In cases when tracking of EAV attribute changes is not required, you can use the method CActiveRecord::update().
+     * Note, if you assign a new value to the primary key of the model you must use this method, because it takes care
+     * of referential integrity.
+     *
+     * @param array $attributes List of attributes that need to be saved, you can also specify EAV attribute names.
+     * Defaults to null, meaning all attributes that are loaded from DB and all related EAV attributes will be saved.
+     * Note, IF LIST OF ATTRIBUTES DOES NOT CONTAIN "eav_set_id", EAV attributes WILL NOT be saved.
      * @return boolean Whether the update is successful.
      * @throws CDbException If the active record is new.
      * @throws CException If the instantiated model does not support EAV attributes.
@@ -599,7 +594,9 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Deletes the row corresponding to this active record and also deletes linked rows which contain values of EAV-attributes.
+     * This method does the same thing as the method CActiveRecord::delete(), except that it also deletes values of
+     * related EAV attributes.
+     *
      * @return boolean Whether the deletion is successful.
      * @throws CDbException If the active record is new.
      * @throws CException If the instantiated model does not support EAV attributes.
@@ -689,7 +686,7 @@ class EavActiveRecord extends CActiveRecord
      * Returns the named EAV attribute value. If the given attribute has no value it returns either an empty array for
      * a multivalued attribute or null for a single valued attribute.
      * @param string $name The attribute name.
-     * @return mixed The EAV attribute value.
+     * @return mixed The attribute value.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function getEavAttribute($name)
@@ -770,7 +767,7 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Checks if the model has the named EAV-attribute.
+     * Checks if the model has the named EAV attribute.
      * @param string $name The attribute name.
      * @return boolean Whether the model has the named EAV-attribute.
      * @throws CException If the instantiated model does not support EAV attributes.
@@ -827,10 +824,11 @@ class EavActiveRecord extends CActiveRecord
 
     /**
      * Performs the validation for EAV-attributes.
-     * @param array $attributes List of attributes that should be validated. Defaults to null,
-     * meaning any attribute listed in the applicable validation rules should be
-     * validated. If this parameter is given as a list of attributes, only
-     * the listed attributes will be validated.
+     * @param array $attributes List of EAV attributes that should be validated. Defaults to null,
+     * meaning any EAV attribute listed in the applicable validation rules should be validated. If this parameter is
+     * given as a list of attributes, only the listed attributes will be validated.
+     * Note, if the model supports EAV attributes this method is called by the method validate(), so you do not need to
+     * call this method directly.
      * @return boolean Whether the validation is successful without any error.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
@@ -885,9 +883,9 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Returns a value indicating whether the EAV-attribute is required.
-     * This is determined by checking if the attribute is associated with a
-     * CRequiredValidator validation rule in the current scenario.
+     * Returns a value indicating whether the EAV attribute is required.
+     * This is determined by checking if the attribute is associated with a CRequiredValidator validation rule in the
+     * current scenario.
      * @param $attribute The attribute name.
      * @return boolean Whether the attribute is required.
      * @throws CException If the instantiated model does not support EAV attributes.
@@ -912,9 +910,9 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Returns the EAV-attribute names that are safe to be massively assigned. A safe attribute is one that is associated
+     * Returns the EAV attribute names that are safe to be massively assigned. A safe attribute is one that is associated
      * with a validation rule in the current scenario.
-     * @return array  The EAV-attribute names that are safe to be massively assigned.
+     * @return array The EAV attribute names that are safe to be massively assigned.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function getSafeEavAttributeNames()
@@ -953,8 +951,8 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Returns all the EAV-attribute validators.
-     * @return CList All the EAV-attribute validators.
+     * Returns all the EAV attribute validators.
+     * @return CList All the EA -attribute validators.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function getEavValidatorList()
@@ -975,10 +973,10 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Returns the EAV-attribute validators applicable to the current scenario.
-     * @param string $attribute The name of the EAV-attribute whose validators should be returned.
-     * If this is null, the validators for all EAV-attributes in the model will be returned.
-     * @return array The validators of EAV-attributes applicable to the current scenario.
+     * Returns the EAV attribute validators applicable to the current scenario.
+     * @param string $attribute The name of the EAV attribute whose validators should be returned.
+     * If this is null, the validators for all EAV attributes in the model will be returned.
+     * @return array The validators of EAV attributes applicable to the current scenario.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function getEavValidators($attribute = null)
@@ -1012,7 +1010,8 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Creates validator objects based on the specification in rules of an EAV-attribute. This method is mainly used internally.
+     * Creates validator objects based on the specification in rules of the EAV attribute. This method is mainly used
+     * internally.
      * @return CList Validators built based on EavAttribute::getEavValidatorList().
      * @throws CException If the instantiated model does not support EAV attributes.
      */
@@ -1042,25 +1041,24 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Attaches EAV-attributes to the found record.
-     * You must call this method to attach EAV-attributes to the found records. The record cannot have EAV-attributes
-     * if this method is not called before calling find methods.
-     *
-     * @param boolean $eager If this parameter is set to true then all the values of EAV-attributes will be eagerly loaded.
-     * With lazy loading enabled (the parameter $eager is set to false), values of EAV-attributes are loaded when
-     * they are accessed. It means that a relational query will be initiated when you read a value of an EAV-attribute
-     * the first time.
-     * If eager loading is enabled all the values of related EAV-attributes will be retrieved by performing a UNION
-     * query.
+     * Specifies that EAV attributes that are related to the found record should be loaded.
+     * This method must be called before calling the find methods.
      * <pre>
-     * $record = Class::model()->withEavAttributes()->findByPk(1); //Lazy loading enabled
-     * echo $record->someEavAttr; //a relational query will be initiated to get the value of this EAV-attribute
+     * $record = Foo::model()->withEavAttributes()->findByPk(1); //Lazy loading enabled
+     * echo $record->someEavAttr; //A relational query will be initiated to get the value of this EAV attribute
      *
-     * $record = Class::model()->withEavAttributes(true)->findByPk(1); //Eager loading enabled
-     * echo $record->someEavAttr; // A relation query will not be initiated
+     * $record = Foo::model()->withEavAttributes(true)->findByPk(1); //Eager loading enabled
+     * echo $record->someEavAttr; //A relation query will not be initiated
      * </pre>
      *
-     * @return EavActiveRecord
+     * @param boolean $eager If this parameter is set to true then all EAV attribute values will be eagerly loaded.
+     * With lazy loading enabled (the parameter is set to false), values of EAV attributes are loaded when
+     * they are accessed. It means that a relational query will be initiated when you read a value of an EAV-attribute
+     * the first time.
+     * If eager loading is enabled all the values of related EAV attributes will be retrieved by performing a UNION
+     * query.
+     *
+     * @return EavActiveRecord EavActiveRecord instance.
      */
     public function withEavAttributes($eager = false)
     {
@@ -1073,12 +1071,13 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Attaches a set of EAV-attributes to the model. After calling this method the model may have EAV-attributes and
-     * you can use special methods to work with these. You also can attach a set of EAV-attributes if assign a value to
+     * Attaches the set of EAV attributes to the model. After calling this method the model may have EAV attributes and
+     * you can use special methods to work with these. You also can attach the set of EAV attributes if assign a value to
      * the property EavActiveRecord::$eav_set_id.
      * <pre>
-     * $record->eav_set_id = 4; //Attaches a set of EAV-attributes to the model
-     * $record->attacheEavSet(4); //Attaches a set of EAV-attributes to the model
+     * $record->eav_set_id = 1; //Attaches the set of EAV attributes to the model
+     * $record->attacheEavSet(1); //Attaches the set of EAV attributes to the model
+     * $record->setAttribute('eav_set_id', 1);
      * </pre>
      * @param integer $pk The primary key value of an existing set of EAV-attributes, that must be attached to the model.
      */
@@ -1089,7 +1088,7 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Detaches a set of EAV-attributes from the model.
+     * Detaches the set of EAV-attributes from the model.
      */
     public function detachEavSet()
     {
@@ -1100,7 +1099,7 @@ class EavActiveRecord extends CActiveRecord
     /**
      * Returns the name of the entity based on the class name. You can override this method to add own business logic to
      * format entity name.
-     * @return string The name of the entity.
+     * @return string The entity name.
      */
     public function getEntity()
     {
@@ -1109,8 +1108,8 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Determines whether the model may have EAV-attributes.
-     * @return boolean whether the model may have EAV-attributes.
+     * Determines whether the model may have EAV attributes.
+     * @return boolean whether the model may have EAV attributes.
      */
     public function getIsEavEnabled()
     {
@@ -1119,8 +1118,8 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Returns the old primary key value of the EAV-attribute set.
-     * @return mixed The old primary key value of the EAV-attribute set.
+     * Returns the old primary key value of the EAV attribute set.
+     * @return mixed The old primary key value of the EAV attribute set.
      */
     public function getOldEavSetPrimaryKey()
     {
