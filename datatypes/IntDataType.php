@@ -8,7 +8,7 @@
 /**
  * IntDataType class
  *
- * @version 1.0.1
+ * @since 1.0.0
  */
 class IntDataType extends EavValue
 {

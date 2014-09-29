@@ -9,7 +9,7 @@
  * EavValue class represents methods to save, update and delete values of an EAV attribute.
  * Each class that represents a data type of an EAV attribute value must be derived from it.
  *
- * @version 1.0.1
+ * @since 1.0.0
  */
 class EavValue extends CActiveRecord
 {

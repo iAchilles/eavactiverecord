@@ -80,7 +80,7 @@
  * @property integer $id The primary key.
  * @property string $name The set name.
  *
- * @version 1.0.1
+ * @since 1.0.0
  */
 class EavSet extends CActiveRecord
 {

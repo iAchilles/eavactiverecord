@@ -82,7 +82,7 @@
  * @property string $data  Serialized data is stored and recovered using PHP's serialize() and unserialize() functions.
  * DO NOT set the value of this property directly.
  *
- * @version 1.0.1
+ * @since 1.0.0
  */
 class EavAttribute extends CActiveRecord implements Serializable
 {

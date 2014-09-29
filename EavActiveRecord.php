@@ -14,7 +14,7 @@
  *
  * @property integer $eav_set_id Foreign key whose value match a primary key in the table eav_set.
  *
- * @version 1.0.1
+ * @since 1.0.0
  */
 class EavActiveRecord extends CActiveRecord
 {
