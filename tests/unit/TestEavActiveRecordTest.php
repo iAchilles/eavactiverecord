@@ -12,14 +12,32 @@ require_once('TestEavActiveRecord.php');
  */
 class TestEavActiveRecordTest extends CDbTestCase
 {
+    private $dbConnection;
+
     public $fixtures = array(
         'eav_set' => ':eav_set',
         'eav_attribute' => ':eav_attribute',
         'eav_attribute_set' => ':eav_attribute_set',
-        'eav_test_entity' => 'TestEavActiveRecord',
         'eav_attribute_date' => ':eav_attribute_date',
-        'eav_attribute_varchar' => ':eav_attribute_varchar'
+        'eav_attribute_varchar' => ':eav_attribute_varchar',
+        'eav_test_entity' => ':eav_test_entity',
     );
+
+
+    protected function setUp()
+    {
+        parent::setUp();
+        foreach ($this->fixtures as $key => $value)
+        {
+            Yii::app()->db->getSchema()->resetSequence(Yii::app()->db->getSchema()->getTable($key));
+        }
+    }
+
+
+    public function tearDown()
+    {
+        Yii::app()->db->active = false;
+    }
 
 
     public function testSetAttributes()
@@ -66,7 +84,6 @@ class TestEavActiveRecordTest extends CDbTestCase
 
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(1);
         $this->assertNull($model);
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 
@@ -625,7 +642,6 @@ class TestEavActiveRecordTest extends CDbTestCase
 
         $this->assertEquals(0, count($query1));
         $this->assertEquals(0, count($query2));
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 
@@ -747,7 +763,8 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue($model->hasEavAttribute('varcharMultiple'));
-        $this->assertEquals(array('1', '2'), $model->varcharMultiple);
+        $this->assertContains('1', $model->varcharMultiple);
+        $this->assertContains('2', $model->varcharMultiple);
         unset($model->varcharMultiple);
         $this->assertTrue($model->updateWithEavAttributes());
 
@@ -762,7 +779,8 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue($model->hasEavAttribute('varcharMultiple'));
-        $this->assertEquals(array('1', '2'), $model->varcharMultiple);
+        $this->assertContains('1', $model->varcharMultiple);
+        $this->assertContains('2', $model->varcharMultiple);
         $model->varcharMultiple = null;
         $this->assertTrue($model->updateWithEavAttributes());
 
@@ -777,7 +795,10 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue($model->hasEavAttribute('varcharMultiple'));
-        $this->assertEquals(array('5', 'dd', 'cc'), $model->varcharMultiple);
+        $this->assertContains('5', $model->varcharMultiple);
+        $this->assertContains('dd', $model->varcharMultiple);
+        $this->assertContains('cc', $model->varcharMultiple);
+        $this->assertEquals(3, count($model->varcharMultiple));
         $this->assertEquals('2015-11-11 14:10:25', $model->datetimeSingle);
         $model->varcharMultiple = array('5', null, 'cc');
         $this->assertTrue($model->updateWithEavAttributes());
@@ -785,7 +806,9 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue($model->hasEavAttribute('varcharMultiple'));
-        $this->assertEquals(array('5', 'cc'), $model->varcharMultiple);
+        $this->assertContains('5', $model->varcharMultiple);
+        $this->assertContains('cc', $model->varcharMultiple);
+        $this->assertEquals(2, count($model->varcharMultiple));
         $this->assertEquals('2015-11-11 14:10:25', $model->datetimeSingle);
         $this->assertEquals(2, $model->eav_set_id);
         $model->eav_set_id = 1;
@@ -871,7 +894,6 @@ class TestEavActiveRecordTest extends CDbTestCase
         $this->assertTrue(!$model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue(!$model->hasEavAttribute('varcharMultiple'));
 
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 
@@ -1061,10 +1083,11 @@ class TestEavActiveRecordTest extends CDbTestCase
         $this->assertFalse(TestEavActiveRecord::model()->getIsEavEnabled());
         $this->assertTrue($model->getIsEavEnabled());
 
-        $model = TestEavActiveRecord::model()->find('::datetimeSingle = :d', array(':d' => 'dd'));
+        $model = TestEavActiveRecord::model()->find('::datetimeSingle = :d', array(':d' => '2089-11-01 14:10:25'));
         $this->assertNull($model);
 
-        $model = TestEavActiveRecord::model()->withEavAttributes()->find('::datetimeSingle = :d', array(':d' => 'dd'));
+        $model = TestEavActiveRecord::model()->withEavAttributes()->find('::datetimeSingle = :d',
+            array(':d' => '2089-11-01 14:10:25'));
         $this->assertNull($model);
         $this->assertFalse(TestEavActiveRecord::model()->getIsEavEnabled());
     }
@@ -1306,7 +1329,7 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model->eav_set_id = 2;
 
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
-        $model->eav_set_id = '';
+        $model->eav_set_id = null;
         $this->assertFalse($model->hasEavAttribute('datetimeSingle'));
         $model->eav_set_id = 1;
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
@@ -1391,7 +1414,26 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(787);
         $this->assertInstanceOf('EavActiveRecord', $model);
         $this->assertEquals('1997-12-12 12:12:12', $model->datetimeSingle);
-        Yii::app()->fixture->load($this->fixtures);
+    }
+
+
+    public function testAddDropColumn()
+    {
+        $model = TestEavActiveRecord::model();
+        $column = $model->tableSchema->getColumn('eav_set_id');
+        $this->assertInstanceOf('CDbColumnSchema', $column);
+        $this->assertTrue($column->isForeignKey);
+        $model->dropColumn();
+        $model->getDbConnection()->getSchema()->refresh();
+        $model->refreshMetaData();
+        $column = $model->tableSchema->getColumn('eav_set_id');
+        $this->assertNull($column);
+        $model->addColumn();
+        $model->getDbConnection()->getSchema()->refresh();
+        $model->refreshMetaData();
+        $column = $model->tableSchema->getColumn('eav_set_id');
+        $this->assertInstanceOf('CDbColumnSchema', $column);
+        $this->assertTrue($column->isForeignKey);
     }
 
 }

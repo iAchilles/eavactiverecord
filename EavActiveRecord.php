@@ -1244,8 +1244,7 @@ class EavActiveRecord extends CActiveRecord
         $this->eavEnable = true;
         $this->metaData->addRelation(self::EAV_SET_RELATION_NAME,
             array(self::BELONGS_TO, 'EavSet', 'oldEavSetPrimaryKey',
-                  'alias' => self::EAV_SET_RELATION_NAME,
-                  'with' => self::EAV_ATTRIBUTE_RELATION_NAME));
+                  'alias' => self::EAV_SET_RELATION_NAME, 'with' => self::EAV_ATTRIBUTE_RELATION_NAME));
         $set = $this->getRelated(self::EAV_SET_RELATION_NAME);
         if (!is_null($set))
         {
@@ -1349,14 +1348,12 @@ class EavActiveRecord extends CActiveRecord
         $relation = $attribute->type == EavAttribute::TYPE_SINGLE ? self::HAS_ONE : self::HAS_MANY;
 
         $name = $this->createEavRelationName($name);
-        $condition = $name . '.eav_attribute_id = :' . $name . '_eav_attribute_id AND  '
-            . $name . '.entity = :' . $name . '_entity';
+        $condition = $this->quoteColumnName($name . '.eav_attribute_id') . ' = :' . $name . '_eav_attribute_id AND  '
+                   . $this->quoteColumnName($name . '.entity') . ' = :' . $name . '_entity';
 
-        $this->metaData->addRelation($name, array($relation, $attribute->data_type,
-                                                  'entity_id', 'on' => $condition, 'params' => array(
-                ':' . $name . '_eav_attribute_id' => $attribute->id,
-                ':' . $name . '_entity' => $this->getEntity())));
-
+        $this->metaData->addRelation($name, array($relation, $attribute->data_type, 'entity_id', 'on' => $condition,
+                                                  'params' => array(':' . $name . '_eav_attribute_id' => $attribute->id,
+                                                                    ':' . $name . '_entity' => $this->getEntity())));
         return $name;
     }
 
@@ -1394,12 +1391,15 @@ class EavActiveRecord extends CActiveRecord
 
             $relation = $attribute->type == EavAttribute::TYPE_SINGLE ? self::HAS_ONE : self::HAS_MANY;
             $name = self::EAV_FIND_RELATION_NAME . ucfirst($name);
-            $condition = $name . '.eav_attribute_id = :' . $name . '_eav_attribute_id AND  '
-                . $name . '.entity = :' . $name . '_entity';
-            $this->metaData->addRelation($name, array($relation, $attribute->data_type,
-                                                      'entity_id', 'select' => false, 'on' => $condition, 'params' => array(
+
+            $condition = $this->quoteColumnName($name . '.eav_attribute_id') . ' = :' . $name . '_eav_attribute_id AND  '
+                       . $this->quoteColumnName($name . '.entity') . ' = :' . $name . '_entity';
+
+            $this->metaData->addRelation($name, array($relation, $attribute->data_type, 'entity_id', 'select' => false,
+                                                      'on' => $condition, 'params' => array(
                     ':' . $name . '_eav_attribute_id' => $attribute->id,
                     ':' . $name . '_entity' => $this->getEntity())));
+
             $this->getDbCriteria()->mergeWith(array('with' => array($name)));
         }
     }
@@ -1569,6 +1569,7 @@ class EavActiveRecord extends CActiveRecord
     private function createUnionCommand($record)
     {
         $db = $this->getDbConnection();
+        $castType = $this->getCastType();
         $params = array();
         $sql = '';
         $counter = 0;
@@ -1595,8 +1596,7 @@ class EavActiveRecord extends CActiveRecord
                 return  $db->createCommand()->select()
                     ->from($class->tableName())
                     ->where(array('and', 'eav_attribute_id = :eav_attribute_id',
-                                  'entity = :entity', 'entity_id = :entity_id'),
-                        array(':eav_attribute_id' => $attr->id,
+                                  'entity = :entity', 'entity_id = :entity_id'), array(':eav_attribute_id' => $attr->id,
                               ':entity' => $record->getEntity(),
                               ':entity_id' => $record->getPrimaryKey()));
             }
@@ -1606,7 +1606,7 @@ class EavActiveRecord extends CActiveRecord
                 $class = EavValue::model($attr->data_type);
 
                 $command = $db->createCommand()
-                    ->select()
+                    ->select('id, eav_attribute_id, entity_id, entity, CAST(value AS ' . $castType . ') AS value')
                     ->from($class->tableName())
                     ->where(array('and',
                                   'eav_attribute_id = :eav_attribute_id_' . $counter,
@@ -1621,7 +1621,7 @@ class EavActiveRecord extends CActiveRecord
             }
 
             $command = $db->createCommand()
-                ->select('id, eav_attribute_id, entity_id, entity, CAST(value AS CHAR) AS value')
+                ->select('id, eav_attribute_id, entity_id, entity, CAST(value AS ' . $castType . ') AS value')
                 ->from('(' . $sql . ') AS t');
             $command->params = $params;
             return $command;
@@ -1652,7 +1652,7 @@ class EavActiveRecord extends CActiveRecord
                     $class = EavValue::model($attr->data_type);
 
                     $command = $db->createCommand()
-                        ->select()
+                        ->select('id, eav_attribute_id, entity_id, entity, CAST(value AS ' . $castType . ') AS value')
                         ->from($class->tableName())
                         ->where(array('and',
                                       'eav_attribute_id = :eav_attribute_id_' . $counter,
@@ -1678,7 +1678,7 @@ class EavActiveRecord extends CActiveRecord
             }
 
             $command = $db->createCommand()
-                ->select('id, eav_attribute_id, entity_id, entity, CAST(value AS CHAR) AS value')
+                ->select('id, eav_attribute_id, entity_id, entity, CAST(value AS ' . $castType . ') AS value')
                 ->from('(' . $sql . ') AS t');
             $command->params = $params;
             return $command;
@@ -1842,10 +1842,9 @@ class EavActiveRecord extends CActiveRecord
             {
                 foreach ($matches[0] as $name)
                 {
-
                     $name =  mb_substr($name, 2, mb_strlen($name, Yii::app()->charset) - 2, Yii::app()->charset);
                     $this->findEavAttributes[] = $name;
-                    $replace[] = self::EAV_FIND_RELATION_NAME . ucfirst($name) . '.value';
+                    $replace[] = $this->quoteColumnName(self::EAV_FIND_RELATION_NAME . ucfirst($name) . '.value');
                 }
                 $this->addFindEavRelation();
                 return str_replace($matches[0], $replace, $condition);
@@ -1929,14 +1928,52 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
+     * Quotes a column name for use in a query. If the column name contains prefix, the prefix will also be properly quoted.
+     * @param string $name The column name.
+     * @return string The properly quoted column name.
+     */
+    private function quoteColumnName($name)
+    {
+        return $this->getDbConnection()->quoteColumnName($name);
+    }
+
+
+    /**
+     * Returns the name of the target data type of the cast. It's called by the method EavActiveRecord::createUnionCommand().
+     * @return string The name of the target data type of the cast.
+     */
+    private function getCastType()
+    {
+        $schema = $this->getDbConnection()->getSchema();
+        $type = '';
+        if ($schema instanceof CMysqlSchema)
+        {
+            $type = 'char';
+        }
+        else if ($schema instanceof CPgsqlSchema)
+        {
+            $type = 'text';
+        }
+        return  $type;
+    }
+
+
+    /**
      * Adds the new column "eav_set_id" in the associated database table.
      */
     public function addColumn()
     {
         $db = $this->getDbConnection();
-        if (!$this->hasAttribute('eav_set_id'))
+        if (is_null($this->getTableSchema()->getColumn('eav_set_id')))
         {
-            $db->createCommand()->addColumn($this->tableName(), 'eav_set_id', "int(10) unsigned DEFAULT NULL COMMENT 'Foreign key reference eav_set(id)'");
+            if ($db->getSchema() instanceof CMysqlSchema)
+            {
+                $db->createCommand()->addColumn($this->tableName(), 'eav_set_id', "int(10) unsigned DEFAULT NULL COMMENT 'Foreign key reference eav_set(id)'");
+            }
+            else if ($db->getSchema() instanceof CPgsqlSchema)
+            {
+                $db->createCommand()->addColumn($this->tableName(), 'eav_set_id', 'integer');
+            }
             $db->createCommand()->createIndex('no_' . $this->tableName() . '_eav_set_id', $this->tableName(), 'eav_set_id');
             $db->createCommand()->addForeignKey('fk_eav_set_id_' . $this->tableName(), $this->tableName(), 'eav_set_id', 'eav_set', 'id');
         }
@@ -1949,7 +1986,7 @@ class EavActiveRecord extends CActiveRecord
     public function dropColumn()
     {
         $db = $this->getDbConnection();
-        if ($this->hasAttribute('eav_set_id'))
+        if (!is_null($this->getTableSchema()->getColumn('eav_set_id')))
         {
             $db->createCommand()->dropForeignKey('fk_eav_set_id_' . $this->tableName(), $this->tableName());
             $db->createCommand()->dropIndex('no_' . $this->tableName() . '_eav_set_id', $this->tableName());

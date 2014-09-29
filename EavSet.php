@@ -114,9 +114,8 @@ class EavSet extends CActiveRecord
         return array(
             EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME => array(self::MANY_MANY, 
                 'EavAttribute', 'eav_attribute_set(eav_set_id, eav_attribute_id)', 'index' => 'id',
-                'alias' => EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME,
-                'order' => EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME . '_' . EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME
-                    . '.weight ASC'),
+                'order' => $this->getDbConnection()->quoteColumnName(EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME . '_'
+                    . EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME . '.weight') . ' ASC'),
         );
     }
 

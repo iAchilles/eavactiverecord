@@ -71,3 +71,9 @@ CREATE INDEX no_eav_attribute_int_eav_attribute_id ON eav_attribute_int(eav_attr
 CREATE INDEX no_eav_attribute_int_value ON eav_attribute_int(value);
 CREATE INDEX no_eav_attribute_text_entity_entity_id ON eav_attribute_text(entity, entity_id);
 CREATE INDEX no_eav_attribute_text_eav_attribute_id ON eav_attribute_text(eav_attribute_id);
+ALTER SEQUENCE eav_set_id_sequence OWNED BY eav_set.id;
+ALTER SEQUENCE eav_attribute_id_sequence OWNED BY eav_attribute.id;
+ALTER SEQUENCE eav_attribute_date_id_sequence OWNED BY eav_attribute_date.id;
+ALTER SEQUENCE eav_attribute_varchar_id_sequence OWNED BY eav_attribute_varchar.id;
+ALTER SEQUENCE eav_attribute_text_id_sequence OWNED BY eav_attribute_text.id;
+ALTER SEQUENCE eav_attribute_int_id_sequence OWNED BY eav_attribute_int.id;
