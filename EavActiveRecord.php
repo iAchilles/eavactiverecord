@@ -341,13 +341,15 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        if(!$runValidation || $this->validate($attributes))
+        else
         {
-            return $this->getIsNewRecord() ? $this->insertWithEavAttributes($attributes)
-                : $this->updateWithEavAttributes($attributes);
+            if(!$runValidation || $this->validate($attributes))
+            {
+                return $this->getIsNewRecord() ? $this->insertWithEavAttributes($attributes)
+                    : $this->updateWithEavAttributes($attributes);
+            }
+            return false;
         }
-        return false;
     }
 
 
@@ -370,100 +372,109 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        if (!$this->getIsNewRecord())
+        else
         {
-            throw new CDbException(Yii::t('yii', 'The active record cannot be inserted to database because it is not new.'));
-        }
 
-        if ($this->beforeSave())
-        {
-            $separatedAttributes = $this->separateAttributes($attributes);
-            $modelAttributes = isset($separatedAttributes['attributes']) ? $separatedAttributes['attributes'] : null;
-            $eavAttributes = isset($separatedAttributes['eavAttributes']) ? $separatedAttributes['eavAttributes'] : null;
-
-            if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
+            if (!$this->getIsNewRecord())
             {
-                if (!$this->checkEavSetValidity())
-                {
-                    return false;
-                }
-            }
-            $builder = $this->getCommandBuilder();
-            $table = $this->getMetaData()->tableSchema;
-            $command = $builder->createInsertCommand($table, $this->getAttributes($modelAttributes));
-
-            if (is_null($this->getDbConnection()->getCurrentTransaction()))
-            {
-                $transaction = $this->getDbConnection()->beginTransaction();
+                throw new CDbException(Yii::t('yii', 'The active record cannot be inserted to database because it is not new.'));
             }
 
-            try
+            if ($this->beforeSave())
             {
-                if ($command->execute())
+                $separatedAttributes = $this->separateAttributes($attributes);
+                $modelAttributes = isset($separatedAttributes['attributes']) ? $separatedAttributes['attributes'] : null;
+                $eavAttributes = isset($separatedAttributes['eavAttributes']) ? $separatedAttributes['eavAttributes'] : null;
+
+                if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
                 {
-                    $primaryKey = $table->primaryKey;
-                    if (!is_null($table->sequenceName))
+                    if (!$this->checkEavSetValidity())
                     {
-                        if (is_string($primaryKey) && is_null($this->$primaryKey))
+                        return false;
+                    }
+                }
+                $builder = $this->getCommandBuilder();
+                $table = $this->getMetaData()->tableSchema;
+                $command = $builder->createInsertCommand($table, $this->getAttributes($modelAttributes));
+
+                if (is_null($this->getDbConnection()->getCurrentTransaction()))
+                {
+                    $transaction = $this->getDbConnection()->beginTransaction();
+                }
+
+                try
+                {
+                    if ($command->execute())
+                    {
+                        $primaryKey = $table->primaryKey;
+                        if (!is_null($table->sequenceName))
                         {
-                            $this->$primaryKey = $builder->getLastInsertID($table);
-                        }
-                        else if (is_array($primaryKey))
-                        {
-                            foreach ($primaryKey as $pk)
+                            if (is_string($primaryKey) && is_null($this->$primaryKey))
                             {
-                                if (is_null($this->$pk))
+                                $this->$primaryKey = $builder->getLastInsertID($table);
+                            }
+                            else
+                            {
+                                if (is_array($primaryKey))
                                 {
-                                    $this->$pk = $builder->getLastInsertID($table);
-                                    break;
+                                    foreach ($primaryKey as $pk)
+                                    {
+                                        if (is_null($this->$pk))
+                                        {
+                                            $this->$pk = $builder->getLastInsertID($table);
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if ((is_null($modelAttributes) && !is_null($this->eav_set_id))
-                        || (in_array('eav_set_id', $modelAttributes) && !is_null($this->eav_set_id)))
-                    {
-                        $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
-                            : $this->getEavAttributes($eavAttributes);
-
-                        foreach ($attributes as $name => $value)
+                        if ((is_null($modelAttributes) && !is_null($this->eav_set_id))
+                            || (in_array('eav_set_id', $modelAttributes) && !is_null($this->eav_set_id))
+                        )
                         {
-                            $attribute = $this->eavAttributeInstances[$name];
-                            $class = EavValue::model($attribute->data_type);
-                            $class->insertValue($this, $attribute, $value);
+                            $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
+                                : $this->getEavAttributes($eavAttributes);
+
+                            foreach ($attributes as $name => $value)
+                            {
+                                $attribute = $this->eavAttributeInstances[$name];
+                                $class = EavValue::model($attribute->data_type);
+                                $class->insertValue($this, $attribute, $value);
+                            }
+                            $this->setOldEavSetPrimaryKey();
+                            $this->storedEavAttributeInstances = $this->eavAttributeInstances;
                         }
-                        $this->setOldEavSetPrimaryKey();
-                        $this->storedEavAttributeInstances = $this->eavAttributeInstances;
+
+                        if (isset($transaction))
+                        {
+                            $transaction->commit();
+                        }
+                        $this->setOldPrimaryKey($this->getPrimaryKey());
+                        $this->afterSave();
+                        $this->setIsNewRecord(false);
+                        $this->setScenario('update');
+
+                        return true;
                     }
 
                     if (isset($transaction))
                     {
-                        $transaction->commit();
+                        $transaction->rollback();
                     }
-                    $this->setOldPrimaryKey($this->getPrimaryKey());
-                    $this->afterSave();
-                    $this->setIsNewRecord(false);
-                    $this->setScenario('update');
-                    return true;
                 }
+                catch (CException $ex)
+                {
+                    if (isset($transaction))
+                    {
+                        $transaction->rollback();
+                    }
+                    throw $ex;
+                }
+            }
 
-                if (isset($transaction))
-                {
-                    $transaction->rollback();
-                }
-            }
-            catch (CException $ex)
-            {
-                if (isset($transaction))
-                {
-                    $transaction->rollback();
-                }
-                throw $ex;
-            }
+            return false;
         }
-        return false;
     }
 
 
@@ -488,108 +499,112 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        if ($this->getIsNewRecord())
+        else
         {
-            throw new CDbException(Yii::t('yii','The active record cannot be updated because it is new.'));
-        }
-
-        if ($this->beforeSave())
-        {
-            $separatedAttributes = $this->separateAttributes($attributes);
-            $modelAttributes = isset($separatedAttributes['attributes']) ? $separatedAttributes['attributes'] : null;
-            $eavAttributes = isset($separatedAttributes['eavAttributes']) ? $separatedAttributes['eavAttributes'] : null;
-
-            if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
+            if ($this->getIsNewRecord())
             {
-                if (!$this->checkEavSetValidity())
-                {
-                    return false;
-                }
+                throw new CDbException(Yii::t('yii', 'The active record cannot be updated because it is new.'));
             }
 
-            if (is_null($this->getDbConnection()->getCurrentTransaction()))
+            if ($this->beforeSave())
             {
-                $transaction = $this->getDbConnection()->beginTransaction();
-            }
-            try
-            {
-                if (is_null($this->getOldPrimaryKey()))
-                {
-                    $this->setOldPrimaryKey($this->getPrimaryKey());
-                }
-                $this->updateByPk($this->getOldPrimaryKey(), $this->getAttributes($modelAttributes));
+                $separatedAttributes = $this->separateAttributes($attributes);
+                $modelAttributes = isset($separatedAttributes['attributes']) ? $separatedAttributes['attributes'] : null;
+                $eavAttributes = isset($separatedAttributes['eavAttributes']) ? $separatedAttributes['eavAttributes'] : null;
 
                 if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
                 {
-                    $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
-                        : $this->getEavAttributes($eavAttributes);
-
-                    if (!empty($this->storedEavAttributeInstances))
+                    if (!$this->checkEavSetValidity())
                     {
-                        foreach ($this->storedEavAttributeInstances as $attribute)
-                        {
-                            if (!array_key_exists($attribute->name, $this->eavAttributeInstances))
-                            {
-                                $class = EavValue::model($attribute->data_type);
-                                $class->deleteValue($this, $attribute);
-                            }
-                        }
+                        return false;
                     }
-
-                    foreach ($attributes as $name => $value)
-                    {
-                        if ($value !== $this->oldEavAttributes[$name])
-                        {
-                            $attribute = $this->eavAttributeInstances[$name];
-                            $class = EavValue::model($attribute->data_type);
-                            $class->saveValue($this, $attribute, $value);
-                        }
-                    }
-                    $this->setOldEavSetPrimaryKey();
-                    $this->storedEavAttributeInstances = $this->eavAttributeInstances;
                 }
 
-                $pk = is_null($this->primaryKey()) ? $this->getMetaData()->tableSchema->primaryKey : $this->primaryKey();
-                if (is_null($modelAttributes) || in_array($pk, $modelAttributes))
+                if (is_null($this->getDbConnection()->getCurrentTransaction()))
                 {
-                    if ($this->getOldPrimaryKey() != $this->getPrimaryKey())
+                    $transaction = $this->getDbConnection()->beginTransaction();
+                }
+                try
+                {
+                    if (is_null($this->getOldPrimaryKey()))
                     {
+                        $this->setOldPrimaryKey($this->getPrimaryKey());
+                    }
+                    $this->updateByPk($this->getOldPrimaryKey(), $this->getAttributes($modelAttributes));
+
+                    if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
+                    {
+                        $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
+                            : $this->getEavAttributes($eavAttributes);
+
                         if (!empty($this->storedEavAttributeInstances))
                         {
-                            $dataTypes = array();
-                            foreach ($this->storedEavAttributeInstances as $attr)
+                            foreach ($this->storedEavAttributeInstances as $attribute)
                             {
-                                if (!in_array($attr->data_type, $dataTypes))
+                                if (!array_key_exists($attribute->name, $this->eavAttributeInstances))
                                 {
-                                    array_push($dataTypes, $attr->data_type);
-                                    $class = EavValue::model($attr->data_type);
-                                    $class->updateEntityPrimaryKey($this);
+                                    $class = EavValue::model($attribute->data_type);
+                                    $class->deleteValue($this, $attribute);
                                 }
                             }
-                            unset($dataTypes);
+                        }
+
+                        foreach ($attributes as $name => $value)
+                        {
+                            if ($value !== $this->oldEavAttributes[$name])
+                            {
+                                $attribute = $this->eavAttributeInstances[$name];
+                                $class = EavValue::model($attribute->data_type);
+                                $class->saveValue($this, $attribute, $value);
+                            }
+                        }
+                        $this->setOldEavSetPrimaryKey();
+                        $this->storedEavAttributeInstances = $this->eavAttributeInstances;
+                    }
+
+                    $pk = is_null($this->primaryKey()) ? $this->getMetaData()->tableSchema->primaryKey : $this->primaryKey();
+                    if (is_null($modelAttributes) || in_array($pk, $modelAttributes))
+                    {
+                        if ($this->getOldPrimaryKey() != $this->getPrimaryKey())
+                        {
+                            if (!empty($this->storedEavAttributeInstances))
+                            {
+                                $dataTypes = array();
+                                foreach ($this->storedEavAttributeInstances as $attr)
+                                {
+                                    if (!in_array($attr->data_type, $dataTypes))
+                                    {
+                                        array_push($dataTypes, $attr->data_type);
+                                        $class = EavValue::model($attr->data_type);
+                                        $class->updateEntityPrimaryKey($this);
+                                    }
+                                }
+                                unset($dataTypes);
+                            }
                         }
                     }
-                }
 
-                $this->setOldPrimaryKey($this->getPrimaryKey());
-                if (isset($transaction))
-                {
-                    $transaction->commit();
+                    $this->setOldPrimaryKey($this->getPrimaryKey());
+                    if (isset($transaction))
+                    {
+                        $transaction->commit();
+                    }
+                    $this->afterSave();
+
+                    return true;
                 }
-                $this->afterSave();
-                return true;
-            }
-            catch (CException $ex)
-            {
-                if (isset($transaction))
+                catch (CException $ex)
                 {
-                    $transaction->rollback();
+                    if (isset($transaction))
+                    {
+                        $transaction->rollback();
+                    }
+                    throw $ex;
                 }
-                throw $ex;
             }
+
+            return false;
         }
-        return false;
     }
 
 
@@ -608,49 +623,53 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        if (!$this->getIsNewRecord())
+        else
         {
-            if ($this->beforeDelete())
-            {
-                if (is_null($this->getDbConnection()->getCurrentTransaction()))
-                {
-                    $transaction = $this->getDbConnection()->beginTransaction();
-                }
 
-                try
+            if (!$this->getIsNewRecord())
+            {
+                if ($this->beforeDelete())
                 {
-                    $result = $this->deleteByPk($this->getPrimaryKey()) > 0;
-                    if ($result && !empty($this->storedEavAttributeInstances))
+                    if (is_null($this->getDbConnection()->getCurrentTransaction()))
                     {
-                        foreach ($this->storedEavAttributeInstances as $attribute)
+                        $transaction = $this->getDbConnection()->beginTransaction();
+                    }
+
+                    try
+                    {
+                        $result = $this->deleteByPk($this->getPrimaryKey()) > 0;
+                        if ($result && !empty($this->storedEavAttributeInstances))
                         {
-                            $class = EavValue::model($attribute->data_type);
-                            $class->deleteValue($this, $attribute);
+                            foreach ($this->storedEavAttributeInstances as $attribute)
+                            {
+                                $class = EavValue::model($attribute->data_type);
+                                $class->deleteValue($this, $attribute);
+                            }
+                        }
+                        if (isset($transaction))
+                        {
+                            $transaction->commit();
                         }
                     }
-                    if (isset($transaction))
+                    catch (CException $ex)
                     {
-                        $transaction->commit();
+                        if (isset($transaction))
+                        {
+                            $transaction->rollback();
+                        }
+                        throw $ex;
                     }
+                    $this->afterDelete();
+
+                    return $result;
                 }
-                catch (CException $ex)
+                else
                 {
-                    if (isset($transaction))
-                    {
-                        $transaction->rollback();
-                    }
-                    throw $ex;
+                    return false;
                 }
-                $this->afterDelete();
-                return $result;
             }
-            else
-            {
-                return false;
-            }
+            throw new CDbException(Yii::t('yii', 'The active record cannot be deleted because it is new.'));
         }
-        throw new CDbException(Yii::t('yii', 'The active record cannot be deleted because it is new.'));
     }
 
 
@@ -799,17 +818,21 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        if ($this->hasEavAttribute($name))
+        else
         {
-            if (!$this->getIsNewRecord() && !array_key_exists($name, $this->oldEavAttributes))
+            if ($this->hasEavAttribute($name))
             {
-                $this->setOldEavAttribute($name);
+                if (!$this->getIsNewRecord() && !array_key_exists($name, $this->oldEavAttributes))
+                {
+                    $this->setOldEavAttribute($name);
+                }
+                $this->newEavAttributes[$name] = $value;
+
+                return true;
             }
-            $this->newEavAttributes[$name] = $value;
-            return true;
+
+            return false;
         }
-        return false;
     }
 
 
@@ -827,38 +850,44 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        if ($this->hasEavAttribute($name))
+        else
         {
-            if (array_key_exists($name, $this->newEavAttributes))
+            if ($this->hasEavAttribute($name))
             {
-                return $this->newEavAttributes[$name];
-            }
-            else
-            {
-                if ($this->getIsNewRecord())
+                if (array_key_exists($name, $this->newEavAttributes))
                 {
-                    $this->newEavAttributes[$name] =
-                        $this->eavAttributeInstances[$name]->type == EavAttribute::TYPE_SINGLE ? null : array();
                     return $this->newEavAttributes[$name];
                 }
                 else
                 {
-                    if (array_key_exists($name, $this->oldEavAttributes))
+                    if ($this->getIsNewRecord())
                     {
-                        $this->newEavAttributes[$name] = $this->oldEavAttributes[$name];
+                        $this->newEavAttributes[$name] =
+                            $this->eavAttributeInstances[$name]->type == EavAttribute::TYPE_SINGLE ? null : array();
+
                         return $this->newEavAttributes[$name];
                     }
                     else
                     {
-                        $this->setOldEavAttribute($name);
-                        $this->newEavAttributes[$name] = $this->oldEavAttributes[$name];
-                        return $this->newEavAttributes[$name];
+                        if (array_key_exists($name, $this->oldEavAttributes))
+                        {
+                            $this->newEavAttributes[$name] = $this->oldEavAttributes[$name];
+
+                            return $this->newEavAttributes[$name];
+                        }
+                        else
+                        {
+                            $this->setOldEavAttribute($name);
+                            $this->newEavAttributes[$name] = $this->oldEavAttributes[$name];
+
+                            return $this->newEavAttributes[$name];
+                        }
                     }
                 }
             }
+
+            return null;
         }
-        return null;
     }
 
 
@@ -876,24 +905,29 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        $attributes = array();
-        if (is_null($names))
+        else
         {
-            foreach ($this->eavAttributeNames() as $name)
+            $attributes = array();
+            if (is_null($names))
             {
-                $attributes[$name] = $this->getEavAttribute($name);
+                foreach ($this->eavAttributeNames() as $name)
+                {
+                    $attributes[$name] = $this->getEavAttribute($name);
+                }
             }
-        }
-        else if (is_array($names))
-        {
-            foreach ($names as $name)
+            else
             {
-                $attributes[$name] = $this->getEavAttribute($name);
+                if (is_array($names))
+                {
+                    foreach ($names as $name)
+                    {
+                        $attributes[$name] = $this->getEavAttribute($name);
+                    }
+                }
             }
-        }
 
-        return $attributes;
+            return $attributes;
+        }
     }
 
 
@@ -910,8 +944,10 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        return isset($this->eavAttributeInstances[$name]);
+        else
+        {
+            return isset($this->eavAttributeInstances[$name]);
+        }
     }
 
 
@@ -927,8 +963,10 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        return array_keys($this->eavAttributeInstances);
+        else
+        {
+            return array_keys($this->eavAttributeInstances);
+        }
     }
 
 
@@ -945,11 +983,15 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-        if (!$this->hasEavAttribute($name))
+        else
         {
-            return false;
+            if (!$this->hasEavAttribute($name))
+            {
+                return false;
+            }
+
+            return $this->eavAttributeInstances[$name]->type == EavAttribute::TYPE_MULTIPLE;
         }
-        return $this->eavAttributeInstances[$name]->type == EavAttribute::TYPE_MULTIPLE;
     }
 
 
@@ -970,44 +1012,47 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        foreach ($this->getEavValidators() as $validator)
+        else
         {
-            $attr = $validator->attributes;
-            $keys = array_keys($attr);
-            $name = $attr[$keys[0]];
-
-            if ($this->isEavAttributeMultivalued($name) && (is_null($attributes)
-                    || in_array($name, $attributes)))
+            foreach ($this->getEavValidators() as $validator)
             {
-                $originalValue = $this->getEavAttribute($name);
-                if (empty($originalValue))
+                $attr = $validator->attributes;
+                $keys = array_keys($attr);
+                $name = $attr[$keys[0]];
+
+                if ($this->isEavAttributeMultivalued($name) && (is_null($attributes)
+                        || in_array($name, $attributes))
+                )
                 {
-                    $this->newEavAttributes[$name] = null;
-                    $validator->validate($this, $attributes);
-                    $this->setEavAttribute($name, $originalValue);
-                }
-                else
-                {
-                    if (!is_array($originalValue))
+                    $originalValue = $this->getEavAttribute($name);
+                    if (empty($originalValue))
                     {
-                        $this->addError($name, Yii::t('yii','{attribute} is invalid.',
-                            array('{attribute}' => $this->getAttributeLabel($name))));
+                        $this->newEavAttributes[$name] = null;
+                        $validator->validate($this, $attributes);
+                        $this->setEavAttribute($name, $originalValue);
                     }
                     else
                     {
-                        foreach ($originalValue as $value)
+                        if (!is_array($originalValue))
                         {
-                            $this->newEavAttributes[$name] = $value;
-                            $validator->validate($this, $attributes);
+                            $this->addError($name, Yii::t('yii', '{attribute} is invalid.',
+                                array('{attribute}' => $this->getAttributeLabel($name))));
                         }
-                        $this->setEavAttribute($name, $originalValue);
+                        else
+                        {
+                            foreach ($originalValue as $value)
+                            {
+                                $this->newEavAttributes[$name] = $value;
+                                $validator->validate($this, $attributes);
+                            }
+                            $this->setEavAttribute($name, $originalValue);
+                        }
                     }
                 }
-            }
-            else
-            {
-                $validator->validate($this, $attributes);
+                else
+                {
+                    $validator->validate($this, $attributes);
+                }
             }
         }
     }
@@ -1028,15 +1073,18 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        foreach ($this->getEavValidators($attribute) as $validator)
+        else
         {
-            if ($validator instanceof CRequiredValidator)
+            foreach ($this->getEavValidators($attribute) as $validator)
             {
-                return true;
+                if ($validator instanceof CRequiredValidator)
+                {
+                    return true;
+                }
             }
+
+            return false;
         }
-        return false;
     }
 
 
@@ -1053,31 +1101,34 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
+        else
+        {
+            $attributes = array();
+            $unsafe = array();
+            foreach ($this->getEavValidators() as $validator)
+            {
+                if (!$validator->safe)
+                {
+                    foreach ($validator->attributes as $name)
+                    {
+                        $unsafe[] = $name;
+                    }
+                }
+                else
+                {
+                    foreach ($validator->attributes as $name)
+                    {
+                        $attributes[$name] = true;
+                    }
+                }
+            }
+            foreach ($unsafe as $name)
+            {
+                unset($attributes[$name]);
+            }
 
-        $attributes = array();
-        $unsafe = array();
-        foreach ($this->getEavValidators() as $validator)
-        {
-            if (!$validator->safe)
-            {
-                foreach ($validator->attributes as $name)
-                {
-                    $unsafe[] = $name;
-                }
-            }
-            else
-            {
-                foreach ($validator->attributes as $name)
-                {
-                    $attributes[$name] = true;
-                }
-            }
+            return array_keys($attributes);
         }
-        foreach ($unsafe as $name)
-        {
-            unset($attributes[$name]);
-        }
-        return array_keys($attributes);
     }
 
 
@@ -1093,13 +1144,15 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        if (is_null($this->eavValidators))
+        else
         {
-            $this->eavValidators = $this->createEavValidators();
-        }
+            if (is_null($this->eavValidators))
+            {
+                $this->eavValidators = $this->createEavValidators();
+            }
 
-        return $this->eavValidators;
+            return $this->eavValidators;
+        }
     }
 
 
@@ -1117,26 +1170,29 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        if (is_null($this->eavValidators))
+        else
         {
-            $this->eavValidators = $this->createEavValidators();
-        }
-
-        $validators = array();
-        $scenario = $this->getScenario();
-
-        foreach ($this->eavValidators as $validator)
-        {
-            if ($validator->applyTo($scenario))
+            if (is_null($this->eavValidators))
             {
-                if (is_null($attribute) || in_array($attribute, $validator->attributes, true))
+                $this->eavValidators = $this->createEavValidators();
+            }
+
+            $validators = array();
+            $scenario = $this->getScenario();
+
+            foreach ($this->eavValidators as $validator)
+            {
+                if ($validator->applyTo($scenario))
                 {
-                    $validators[] = $validator;
+                    if (is_null($attribute) || in_array($attribute, $validator->attributes, true))
+                    {
+                        $validators[] = $validator;
+                    }
                 }
             }
+
+            return $validators;
         }
-        return $validators;
     }
 
 
@@ -1153,21 +1209,23 @@ class EavActiveRecord extends CActiveRecord
             throw new CException('The method ' . __METHOD__ . '() should not be called. The instantiated model does not
             support EAV attributes.');
         }
-
-        $validators = new CList();
-
-        foreach ($this->eavAttributeInstances as $attr)
+        else
         {
-            $validatorList = $attr->getEavValidatorList();
+            $validators = new CList();
 
-            foreach ($validatorList as $validator => $params)
+            foreach ($this->eavAttributeInstances as $attr)
             {
-                $validators->add(CValidator::createValidator(
-                    $validator, $this, $attr->name, $params));
-            }
-        }
+                $validatorList = $attr->getEavValidatorList();
 
-        return $validators;
+                foreach ($validatorList as $validator => $params)
+                {
+                    $validators->add(CValidator::createValidator(
+                        $validator, $this, $attr->name, $params));
+                }
+            }
+
+            return $validators;
+        }
     }
 
 
