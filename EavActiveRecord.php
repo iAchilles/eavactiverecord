@@ -379,101 +379,97 @@ class EavActiveRecord extends CActiveRecord
             {
                 throw new CDbException(Yii::t('yii', 'The active record cannot be inserted to database because it is not new.'));
             }
-
-            if ($this->beforeSave())
+            else
             {
-                $separatedAttributes = $this->separateAttributes($attributes);
-                $modelAttributes = isset($separatedAttributes['attributes']) ? $separatedAttributes['attributes'] : null;
-                $eavAttributes = isset($separatedAttributes['eavAttributes']) ? $separatedAttributes['eavAttributes'] : null;
-
-                if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
+                if ($this->beforeSave())
                 {
-                    if (!$this->checkEavSetValidity())
+                    $separatedAttributes = $this->separateAttributes($attributes);
+                    $modelAttributes = isset($separatedAttributes['attributes']) ? $separatedAttributes['attributes'] : null;
+                    $eavAttributes = isset($separatedAttributes['eavAttributes']) ? $separatedAttributes['eavAttributes'] : null;
+
+                    $builder = $this->getCommandBuilder();
+                    $table = $this->getMetaData()->tableSchema;
+                    $command = $builder->createInsertCommand($table, $this->getAttributes($modelAttributes));
+
+                    if (is_null($this->getDbConnection()->getCurrentTransaction()))
                     {
-                        return false;
+                        $transaction = $this->getDbConnection()->beginTransaction();
                     }
-                }
-                $builder = $this->getCommandBuilder();
-                $table = $this->getMetaData()->tableSchema;
-                $command = $builder->createInsertCommand($table, $this->getAttributes($modelAttributes));
 
-                if (is_null($this->getDbConnection()->getCurrentTransaction()))
-                {
-                    $transaction = $this->getDbConnection()->beginTransaction();
-                }
-
-                try
-                {
-                    if ($command->execute())
+                    try
                     {
-                        $primaryKey = $table->primaryKey;
-                        if (!is_null($table->sequenceName))
+                        if ($command->execute())
                         {
-                            if (is_string($primaryKey) && is_null($this->$primaryKey))
+                            $primaryKey = $table->primaryKey;
+                            if (!is_null($table->sequenceName))
                             {
-                                $this->$primaryKey = $builder->getLastInsertID($table);
-                            }
-                            else
-                            {
-                                if (is_array($primaryKey))
+                                if (is_string($primaryKey) && is_null($this->$primaryKey))
                                 {
-                                    foreach ($primaryKey as $pk)
+                                    $this->$primaryKey = $builder->getLastInsertID($table);
+                                }
+                                else
+                                {
+                                    if (is_array($primaryKey))
                                     {
-                                        if (is_null($this->$pk))
+                                        foreach ($primaryKey as $pk)
                                         {
-                                            $this->$pk = $builder->getLastInsertID($table);
-                                            break;
+                                            if (is_null($this->$pk))
+                                            {
+                                                $this->$pk = $builder->getLastInsertID($table);
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        if ((is_null($modelAttributes) && !is_null($this->eav_set_id))
-                            || (in_array('eav_set_id', $modelAttributes) && !is_null($this->eav_set_id))
-                        )
-                        {
-                            $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
-                                : $this->getEavAttributes($eavAttributes);
-
-                            foreach ($attributes as $name => $value)
+                            if ((is_null($modelAttributes) && !is_null($this->eav_set_id))
+                                || (in_array('eav_set_id', $modelAttributes) && !is_null($this->eav_set_id))
+                            )
                             {
-                                $attribute = $this->eavAttributeInstances[$name];
-                                $class = EavValue::model($attribute->data_type);
-                                $class->insertValue($this, $attribute, $value);
+                                $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
+                                    : $this->getEavAttributes($eavAttributes);
+
+                                foreach ($attributes as $name => $value)
+                                {
+                                    $attribute = $this->eavAttributeInstances[$name];
+                                    $class = EavValue::model($attribute->data_type);
+                                    $class->insertValue($this, $attribute, $value);
+                                    $this->oldEavAttributes[$name] = $value;
+                                }
+                                $this->setOldEavSetPrimaryKey();
+                                $this->storedEavAttributeInstances = $this->eavAttributeInstances;
                             }
-                            $this->setOldEavSetPrimaryKey();
-                            $this->storedEavAttributeInstances = $this->eavAttributeInstances;
+
+                            if (isset($transaction))
+                            {
+                                $transaction->commit();
+                            }
+                            $this->setOldPrimaryKey($this->getPrimaryKey());
+                            $this->afterSave();
+                            $this->setIsNewRecord(false);
+                            $this->setScenario('update');
+
+                            return true;
                         }
 
                         if (isset($transaction))
                         {
-                            $transaction->commit();
+                            $transaction->rollback();
                         }
-                        $this->setOldPrimaryKey($this->getPrimaryKey());
-                        $this->afterSave();
-                        $this->setIsNewRecord(false);
-                        $this->setScenario('update');
-
-                        return true;
                     }
-
-                    if (isset($transaction))
+                    catch (CException $ex)
                     {
-                        $transaction->rollback();
+                        if (isset($transaction))
+                        {
+                            $transaction->rollback();
+                        }
+                        throw $ex;
                     }
                 }
-                catch (CException $ex)
-                {
-                    if (isset($transaction))
-                    {
-                        $transaction->rollback();
-                    }
-                    throw $ex;
-                }
+
+                return false;
             }
-
-            return false;
         }
     }
 
@@ -505,105 +501,100 @@ class EavActiveRecord extends CActiveRecord
             {
                 throw new CDbException(Yii::t('yii', 'The active record cannot be updated because it is new.'));
             }
-
-            if ($this->beforeSave())
+            else
             {
-                $separatedAttributes = $this->separateAttributes($attributes);
-                $modelAttributes = isset($separatedAttributes['attributes']) ? $separatedAttributes['attributes'] : null;
-                $eavAttributes = isset($separatedAttributes['eavAttributes']) ? $separatedAttributes['eavAttributes'] : null;
-
-                if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
+                if ($this->beforeSave())
                 {
-                    if (!$this->checkEavSetValidity())
+                    $separatedAttributes = $this->separateAttributes($attributes);
+                    $modelAttributes = isset($separatedAttributes['attributes']) ? $separatedAttributes['attributes'] : null;
+                    $eavAttributes = isset($separatedAttributes['eavAttributes']) ? $separatedAttributes['eavAttributes'] : null;
+
+                    if (is_null($this->getDbConnection()->getCurrentTransaction()))
                     {
-                        return false;
+                        $transaction = $this->getDbConnection()->beginTransaction();
                     }
-                }
-
-                if (is_null($this->getDbConnection()->getCurrentTransaction()))
-                {
-                    $transaction = $this->getDbConnection()->beginTransaction();
-                }
-                try
-                {
-                    if (is_null($this->getOldPrimaryKey()))
+                    try
                     {
-                        $this->setOldPrimaryKey($this->getPrimaryKey());
-                    }
-                    $this->updateByPk($this->getOldPrimaryKey(), $this->getAttributes($modelAttributes));
-
-                    if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
-                    {
-                        $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
-                            : $this->getEavAttributes($eavAttributes);
-
-                        if (!empty($this->storedEavAttributeInstances))
+                        if (is_null($this->getOldPrimaryKey()))
                         {
-                            foreach ($this->storedEavAttributeInstances as $attribute)
-                            {
-                                if (!array_key_exists($attribute->name, $this->eavAttributeInstances))
-                                {
-                                    $class = EavValue::model($attribute->data_type);
-                                    $class->deleteValue($this, $attribute);
-                                }
-                            }
+                            $this->setOldPrimaryKey($this->getPrimaryKey());
                         }
+                        $this->updateByPk($this->getOldPrimaryKey(), $this->getAttributes($modelAttributes));
 
-                        foreach ($attributes as $name => $value)
+                        if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
                         {
-                            if ($value !== $this->oldEavAttributes[$name])
-                            {
-                                $attribute = $this->eavAttributeInstances[$name];
-                                $class = EavValue::model($attribute->data_type);
-                                $class->saveValue($this, $attribute, $value);
-                            }
-                        }
-                        $this->setOldEavSetPrimaryKey();
-                        $this->storedEavAttributeInstances = $this->eavAttributeInstances;
-                    }
+                            $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
+                                : $this->getEavAttributes($eavAttributes);
 
-                    $pk = is_null($this->primaryKey()) ? $this->getMetaData()->tableSchema->primaryKey : $this->primaryKey();
-                    if (is_null($modelAttributes) || in_array($pk, $modelAttributes))
-                    {
-                        if ($this->getOldPrimaryKey() != $this->getPrimaryKey())
-                        {
                             if (!empty($this->storedEavAttributeInstances))
                             {
-                                $dataTypes = array();
-                                foreach ($this->storedEavAttributeInstances as $attr)
+                                foreach ($this->storedEavAttributeInstances as $attribute)
                                 {
-                                    if (!in_array($attr->data_type, $dataTypes))
+                                    if (!array_key_exists($attribute->name, $this->eavAttributeInstances))
                                     {
-                                        array_push($dataTypes, $attr->data_type);
-                                        $class = EavValue::model($attr->data_type);
-                                        $class->updateEntityPrimaryKey($this);
+                                        $class = EavValue::model($attribute->data_type);
+                                        $class->deleteValue($this, $attribute);
                                     }
                                 }
-                                unset($dataTypes);
+                            }
+
+                            foreach ($attributes as $name => $value)
+                            {
+                                if ($value !== $this->oldEavAttributes[$name])
+                                {
+                                    $attribute = $this->eavAttributeInstances[$name];
+                                    $class = EavValue::model($attribute->data_type);
+                                    $class->saveValue($this, $attribute, $value);
+                                    $this->oldEavAttributes[$name] = $value;
+                                }
+                            }
+                            $this->setOldEavSetPrimaryKey();
+                            $this->storedEavAttributeInstances = $this->eavAttributeInstances;
+                        }
+
+                        $pk = is_null($this->primaryKey()) ? $this->getMetaData()->tableSchema->primaryKey : $this->primaryKey();
+                        if (is_null($modelAttributes) || in_array($pk, $modelAttributes))
+                        {
+                            if ($this->getOldPrimaryKey() != $this->getPrimaryKey())
+                            {
+                                if (!empty($this->storedEavAttributeInstances))
+                                {
+                                    $dataTypes = array();
+                                    foreach ($this->storedEavAttributeInstances as $attr)
+                                    {
+                                        if (!in_array($attr->data_type, $dataTypes))
+                                        {
+                                            array_push($dataTypes, $attr->data_type);
+                                            $class = EavValue::model($attr->data_type);
+                                            $class->updateEntityPrimaryKey($this);
+                                        }
+                                    }
+                                    unset($dataTypes);
+                                }
                             }
                         }
-                    }
 
-                    $this->setOldPrimaryKey($this->getPrimaryKey());
-                    if (isset($transaction))
-                    {
-                        $transaction->commit();
-                    }
-                    $this->afterSave();
+                        $this->setOldPrimaryKey($this->getPrimaryKey());
+                        if (isset($transaction))
+                        {
+                            $transaction->commit();
+                        }
+                        $this->afterSave();
 
-                    return true;
-                }
-                catch (CException $ex)
-                {
-                    if (isset($transaction))
-                    {
-                        $transaction->rollback();
+                        return true;
                     }
-                    throw $ex;
+                    catch (CException $ex)
+                    {
+                        if (isset($transaction))
+                        {
+                            $transaction->rollback();
+                        }
+                        throw $ex;
+                    }
                 }
+
+                return false;
             }
-
-            return false;
         }
     }
 
@@ -762,6 +753,7 @@ class EavActiveRecord extends CActiveRecord
                                     $attribute = $this->eavAttributeInstances[$value];
                                     $class = EavValue::model($attribute->data_type);
                                     $class->saveValue($this, $attribute, $val);
+                                    $this->oldEavAttributes[$value] = $val;
                                 }
                             }
                         }
@@ -775,6 +767,7 @@ class EavActiveRecord extends CActiveRecord
                                     $attribute = $this->eavAttributeInstances[$name];
                                     $class = EavValue::model($attribute->data_type);
                                     $class->saveValue($this, $attribute, $value);
+                                    $this->oldEavAttributes[$name] = $value;
                                 }
                             }
                         }
