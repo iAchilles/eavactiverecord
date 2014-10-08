@@ -2,27 +2,28 @@
 /**
  * EavAttribute class file
  * @author Igor Manturov, Jr. <igor.manturov.jr@gmail.com>
+ * @link https://github.com/iAchilles/eavactiverecord/
  * @license http://opensource.org/licenses/MIT The MIT License (MIT)
  */
 
 /**
- * EavAttribute class represents methods to manipulate EAV-attributes (creating a new attribute, updating an existing
+ * EavAttribute class represents methods to manipulate EAV attributes (creating a new attribute, updating an existing
  * attribute, removing an attribute).
  *
- * There are two types of an EAV-attribute: a multivalued attribute and single valued attribute. A multivalued
- * attribute can have more than one value at a time for an attribute. A single valued attribute can hold only single
+ * There are two types of EAV attributes: a multivalued attribute and single valued attribute. The multivalued
+ * attribute can have more than one value at a time for an attribute. The single valued attribute can hold only single
  * value at a time.
  * <pre>
  * $attribute1 = new EavAttribute();
- * $attribute1->type = EavAttribute::TYPE_SINGLE; //Defines an attribute type. This attribute can hold only single value.
+ * $attribute1->type = EavAttribute::TYPE_SINGLE; //Defines the attribute type. This attribute can hold only single value.
  *
  * $attribute2 = new EavAttribute();
  * $attribute2->type = EavAttribute::TYPE_MULTIPLE; //This attribute can hold multiple values.
  * </pre>
  *
- * There are four data types of an EAV-attribute (surely, you can create own data types): 'IntDataType', 'VarcharDataType',
+ * There are four data types of EAV-attribute values (surely, you can create own data types): 'IntDataType', 'VarcharDataType',
  * 'DatetimeDataType' and 'TextDataType'. The name of the data type must be equal to a class name that is derived from
- * the class EavValue. The value of the EAV-attribute is stored as a record in a table that is based on an attribute
+ * the class EavValue. The value of the EAV attribute is stored as a record in a table that is based on the attribute
  * data type. It uses separate tables for each data type.
  * If the value of the attribute must be stored in an integer, you must use the constant EavAttribute::DATA_TYPE_INT
  * to assign a value to the property EavAttribute::$data_type:
@@ -34,7 +35,7 @@
  * EavAttribute::DATA_TYPE_DATETIME ('DatetimeDataType'), EavAttribute::DATA_TYPE_TEXT ('TextDataType')
  * and EavAttribute::DATA_TYPE_VARCHAR ('VarcharDataType').
  *
- * The name of an EAV-attribute must be unique and follow PHP variable naming convention
+ * The name of the EAV-attribute must be unique and follow PHP variable naming convention
  * (http://php.net/manual/en/language.variables.basics.php). The following name of the attribute is invalid:
  * <pre>
  * $attribute = new EavAttribute();
@@ -70,19 +71,19 @@
  * </pre>
  *
  * 
- * @property integer $id Primary surrogate key.
- * @property integer $type Attribute type. If the attribute may hold multiple values it must be equal to 1, if the attribute
- * may only hold a single value it must be equal to 0. You can use constants EavAttribute::TYPE_SINGLE and
+ * @property integer $id Primary key.
+ * @property integer $type The attribute type. If the attribute may hold multiple values it must be set to 1. If the attribute
+ * may only hold a single value it must be set to 0. You can use constants EavAttribute::TYPE_SINGLE and
  * EavAttribute::TYPE_MULTIPLE to assign a value to this property.
- * @property string $data_type The data type of an attribute. It must contain a name of a class that is derived from
+ * @property string $data_type The attribute value data type. It must contain a name of a class that is derived from
  * the class EavValue. You can use constants EavAttribute::DATA_TYPE_INT, EavAttribute::DATA_TYPE_DATETIME,
  * EavAttribute::DATA_TYPE_TEXT and EavAttribute::DATA_TYPE_VARCHAR to assign a value to this property.
- * @property string $name Attribute name. Must be unique and follow PHP variable naming convention.
- * @property string $label Attribute label.
+ * @property string $name The attribute name. Must be unique and follow PHP variable naming convention.
+ * @property string $label The attribute label.
  * @property string $data  Serialized data is stored and recovered using PHP's serialize() and unserialize() functions.
  * DO NOT set the value of this property directly.
  *
- * @version 1.0.0
+ * @since 1.0.0
  */
 class EavAttribute extends CActiveRecord implements Serializable
 {
@@ -186,16 +187,17 @@ class EavAttribute extends CActiveRecord implements Serializable
 
 
     /**
-     * Adds validation rules to an attribute.
-     * @param array $rules An array contains nested arrays that are indexed by the name of  a validator.
-     * Each nested array contains the definition of a validation rule.
+     * Adds validation rules for the EAV attribute.
      * <pre>
-     * array(
+     * $rules = array(
      *     'length' => array('max' => 5, 'min' => 2),
      *     'date' => array('format' => 'yyyy-M-d H:m:s'),
      * );
+     * $attribute->setRules($rules);
      * </pre>
-     * @throws CException If the given argument is not an array.
+     * @param array $rules An array that contains nested arrays that are indexed by the name of a validator.
+     * Each nested array contains the definition of a validation rule.
+     * @throws CException Passed wrong type of argument.
      */
     public function setRules($rules)
     {
@@ -221,8 +223,9 @@ class EavAttribute extends CActiveRecord implements Serializable
     
     
     /**
-     * Returns all the validation rules for an attribute.
-     * @return array All the validation rules for an attribute. If no validation rules exist, an empty array is returned.
+     * Returns all the validation rules that were defined for the EAV attribute.
+     * @return array All the validation rules that were defined for the EAV attribute. If no validation rules exist, an
+     * empty array is returned.
      */
     public function getEavValidatorList()
     {
@@ -232,11 +235,11 @@ class EavAttribute extends CActiveRecord implements Serializable
 
 
     /**
-     * Returns list of instances of the EavAttribute class (indexed by an attribute name).
-     * @param array $names Names of attributes whose instances should be returned.
-     * @return array List of instances of the class EavAttribute (indexed by an attribute name).
+     * Returns the list of instances of the class EavAttribute (indexed by the attribute name).
+     * @param array $names Names of EAV attributes whose instances should be returned.
+     * @return array The list of instances of the class EavAttribute (indexed by the attribute name).
      * If attributes are not found, an empty array is returned.
-     * @throws CException If the given argument is not an array.
+     * @throws CException Passed wrong type of argument.
      */
     public function getEavAttributes($names)
     {

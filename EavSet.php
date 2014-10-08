@@ -2,11 +2,12 @@
 /**
  * EavSet class file
  * @author Igor Manturov, Jr. <igor.manturov.jr@gmail.com>
+ * @link https://github.com/iAchilles/eavactiverecord/
  * @license http://opensource.org/licenses/MIT The MIT License (MIT)
  */
 
 /**
- * EavSet class It represents methods to manipulate a set of EAV-attributes (creating a new set, adding an attribute to
+ * EavSet class It represents methods to manipulate the set of EAV attributes (creating a new set, adding an attribute to
  * a set, removing an attribute from a set, removing an attribute set).
  *
  * To create a new attribute set and save data to a database, you need to write the following code:
@@ -77,10 +78,10 @@
  * to this set (foreign key constraint).
  *
  *
- * @property integer $id Primary surrogate key.
- * @property string $name Name the set of attributes.
+ * @property integer $id The primary key.
+ * @property string $name The set name.
  *
- * @version 1.0.0
+ * @since 1.0.0
  */
 class EavSet extends CActiveRecord
 {
@@ -114,7 +115,8 @@ class EavSet extends CActiveRecord
         return array(
             EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME => array(self::MANY_MANY, 
                 'EavAttribute', 'eav_attribute_set(eav_set_id, eav_attribute_id)', 'index' => 'id',
-                'alias' => EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME)
+                'order' => $this->getDbConnection()->quoteColumnName(EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME . '_'
+                    . EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME . '.weight') . ' ASC'),
         );
     }
 
@@ -138,7 +140,7 @@ class EavSet extends CActiveRecord
             }
             else
             {
-                $weight = $this->getMaxWeight($this->id);
+                $weight = $this->getMaxWeight();
             }
 
             foreach ($this->addedAttributes as $attribute)
@@ -173,11 +175,11 @@ class EavSet extends CActiveRecord
     
     
     /**
-     * Adds a new attribute to the set.
-     * @param mixed $attribute It must be either an instance of EavAttribute class or the primary key of an attribute
-     * which must be added.
+     * Adds an EAV attribute to the set.
+     * @param mixed $attribute It must be either an instance of the class EavAttribute or the primary key value of the
+     * instance that must be added.
      * @return EavSet
-     * @throws CException
+     * @throws CException Passed wrong type of argument.
      */
     public function addEavAttribute($attribute)
     {
@@ -200,10 +202,10 @@ class EavSet extends CActiveRecord
     
     /**
      * Removes the given attribute from the set.
-     * @param mixed $attribute It must be either an instance of EavAttribute class or the primary key of an attribute
-     * which must be removed.
+     * @param mixed $attribute It must be either an instance of the class EavAttribute or the primary key value of the
+     * instance that must be removed.
      * @return EavSet
-     * @throws CException
+     * @throws CException Passed wrong type of argument.
      */
     public function removeEavAttribute($attribute)
     {
@@ -225,17 +227,46 @@ class EavSet extends CActiveRecord
 
 
     /**
-     * Returns the maximum weight of an attribute in the given set.
-     * @param integer $id The primary key of the set.
-     * @return integer Maximum weight of an attribute in the given set.
+     * Returns the maximum value of the attribute weight in the set.
+     * @return integer The maximum value of the attribute weight in the set.
      */
-    public function getMaxWeight($id)
+    public function getMaxWeight()
     {
         $weight = $this->getDbConnection()->createCommand()->select('MAX(weight)')
-            ->from('{{eav_attribute_set}}')->where('eav_set_id = :id', array(':id' => $id))->queryScalar();
+            ->from('{{eav_attribute_set}}')->where('eav_set_id = :id', array(':id' => $this->id))->queryScalar();
         return $weight === false ? 0 : (int) $weight;
     }
-    
+
+
+    /**
+     * Updates the order of EAV attributes in the set.
+     * @param array $order The array contains primary keys of instances of the class EavAttribute in the needed order.
+     * @return integer Returns number of affected rows.
+     * @since Version 1.0.1
+     */
+    public function updateEavAttributeOrder($order)
+    {
+        $updateRows = 0;
+        foreach ($order as $weight => $pk)
+        {
+            $updateRows += $this->getDbConnection()->createCommand()->update('eav_attribute_set', array('weight' => $weight),
+                array('and', 'eav_set_id = :eav_set_id', 'eav_attribute_id = :eav_attribute_id'),
+                array(':eav_set_id' => $this->id, ':eav_attribute_id' => $pk));
+        }
+        return $updateRows;
+    }
+
+
+    /**
+     * Returns the array of objects of the class EavAttribute related to the set. An empty array will be returned if the
+     * set does not contain EAV attributes.
+     * @return array The array of objects of the class EavAttribute related to the set.
+     */
+    public function getEavAttributes()
+    {
+        return $this->getRelated(EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME);
+    }
+
     
     /**
      * Sets an attribute which must be added to the set.

@@ -1,0 +1,14 @@
+eavactiverecord Change Log
+==========================
+
+Version 1.0.1  October 8, 2014
+------------------------------
+- Bug #2: Output EAV-attributes in wrong order.
+- Bug #3: Checking actual value of the entity's primary key attribute.
+- Bug #4: EavActiveRecord::updateWithEavAttributes(), EavActiveRecord::saveEavAttributes() perform an unexpected insert.
+- New: Added the new method EavActiveRecord::saveEavAttributes()
+- New: Added the new method EavValue::insertValue()
+- New: Added the new method EavValue::updateEntityPrimaryKey()
+- New: Added the new method EavSet::getEavAttributes()
+- New: Added the new method EavSet::updateEavAttributeOrder()
+- New: Added support for PostgreSQL

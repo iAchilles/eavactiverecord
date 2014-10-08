@@ -2,20 +2,21 @@
 /*
  * EavForm class file
  * @author Igor Manturov, Jr. <igor.manturov.jr@gmail.com>
+ * @link https://github.com/iAchilles/eavactiverecord/
  * @license http://opensource.org/licenses/MIT The MIT License (MIT)
  */
  
 /**
- * EavForm class provides dynamically creating form elements for EAV-attributes.
- * It can be used as a widget in a view file:
+ * EavForm class provides a way for dynamically building form elements.
+ * It can be used as a widget in the view file:
  * <pre>
  * $this->widget('EavForm', array('model' => $model));
  * </pre>
  * To rendering a form element it looks up a template file, the name of the template file should be the same as the name
  * of the EAV-attribute.
  * There are two variables are available in the context of every template: $attribute and $model.
- * The value of the variable $attribute is a string that contains the name of the EAV-attribute. The variable $model
- * is reference to an instance of EavActiveRecord.
+ * The value of the variable $attribute is a string that contains the name of the EAV attribute. The variable $model
+ * is reference to an instance of the class EavActiveRecord.
  * The following code may be used in the template file:
  * <pre>
  * echo CHtml::error($model, $attribute);
@@ -43,7 +44,7 @@
  * </pre>
  *
  *
- * @version 1.0.0
+ * @since 1.0.0
  */
 class EavForm extends CWidget
 {
@@ -106,7 +107,7 @@ class EavForm extends CWidget
 
     /**
      * Sets the path to the directory that contains template files.
-     * @param string $path path to the template directory.
+     * @param string $path The path to the template directory.
      */
     public function setViewPath($path)
     {
@@ -125,7 +126,7 @@ class EavForm extends CWidget
 
 
     /**
-     * Allows to define a custom template file which should be used for the specified attribute.
+     * Defines the custom template file which should be used for the specified attribute.
      * @param array $viewMap An array (attributeName => fileName)
      */
     public function setViewMap($viewMap)
@@ -135,8 +136,8 @@ class EavForm extends CWidget
 
 
     /**
-     * If the property value is set to true, the rendering result will not be echoed. You can get the rendering result
-     * as a string by accessing the property EavForm::$html.
+     * Sets the return mode. If the property value is set to true, the rendering result will not be echoed. You can get
+     * the rendering result as a string by accessing the property EavForm::$html.
      * @param boolean $return Whether the rendering result should be echoed.
      */
     public function setReturn($return)

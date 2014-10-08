@@ -12,14 +12,32 @@ require_once('TestEavActiveRecord.php');
  */
 class TestEavActiveRecordTest extends CDbTestCase
 {
+    private $dbConnection;
+
     public $fixtures = array(
         'eav_set' => ':eav_set',
         'eav_attribute' => ':eav_attribute',
         'eav_attribute_set' => ':eav_attribute_set',
-        'eav_test_entity' => 'TestEavActiveRecord',
         'eav_attribute_date' => ':eav_attribute_date',
-        'eav_attribute_varchar' => ':eav_attribute_varchar'
+        'eav_attribute_varchar' => ':eav_attribute_varchar',
+        'eav_test_entity' => ':eav_test_entity',
     );
+
+
+    protected function setUp()
+    {
+        parent::setUp();
+        foreach ($this->fixtures as $key => $value)
+        {
+            Yii::app()->db->getSchema()->resetSequence(Yii::app()->db->getSchema()->getTable($key));
+        }
+    }
+
+
+    public function tearDown()
+    {
+        Yii::app()->db->active = false;
+    }
 
 
     public function testSetAttributes()
@@ -66,7 +84,6 @@ class TestEavActiveRecordTest extends CDbTestCase
 
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(1);
         $this->assertNull($model);
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 
@@ -625,7 +642,6 @@ class TestEavActiveRecordTest extends CDbTestCase
 
         $this->assertEquals(0, count($query1));
         $this->assertEquals(0, count($query2));
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 
@@ -747,7 +763,8 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue($model->hasEavAttribute('varcharMultiple'));
-        $this->assertEquals(array('1', '2'), $model->varcharMultiple);
+        $this->assertContains('1', $model->varcharMultiple);
+        $this->assertContains('2', $model->varcharMultiple);
         unset($model->varcharMultiple);
         $this->assertTrue($model->updateWithEavAttributes());
 
@@ -762,7 +779,8 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue($model->hasEavAttribute('varcharMultiple'));
-        $this->assertEquals(array('1', '2'), $model->varcharMultiple);
+        $this->assertContains('1', $model->varcharMultiple);
+        $this->assertContains('2', $model->varcharMultiple);
         $model->varcharMultiple = null;
         $this->assertTrue($model->updateWithEavAttributes());
 
@@ -777,7 +795,10 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue($model->hasEavAttribute('varcharMultiple'));
-        $this->assertEquals(array('5', 'dd', 'cc'), $model->varcharMultiple);
+        $this->assertContains('5', $model->varcharMultiple);
+        $this->assertContains('dd', $model->varcharMultiple);
+        $this->assertContains('cc', $model->varcharMultiple);
+        $this->assertEquals(3, count($model->varcharMultiple));
         $this->assertEquals('2015-11-11 14:10:25', $model->datetimeSingle);
         $model->varcharMultiple = array('5', null, 'cc');
         $this->assertTrue($model->updateWithEavAttributes());
@@ -785,7 +806,9 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue($model->hasEavAttribute('varcharMultiple'));
-        $this->assertEquals(array('5', 'cc'), $model->varcharMultiple);
+        $this->assertContains('5', $model->varcharMultiple);
+        $this->assertContains('cc', $model->varcharMultiple);
+        $this->assertEquals(2, count($model->varcharMultiple));
         $this->assertEquals('2015-11-11 14:10:25', $model->datetimeSingle);
         $this->assertEquals(2, $model->eav_set_id);
         $model->eav_set_id = 1;
@@ -871,7 +894,6 @@ class TestEavActiveRecordTest extends CDbTestCase
         $this->assertTrue(!$model->hasEavAttribute('datetimeSingle'));
         $this->assertTrue(!$model->hasEavAttribute('varcharMultiple'));
 
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 
@@ -1061,10 +1083,11 @@ class TestEavActiveRecordTest extends CDbTestCase
         $this->assertFalse(TestEavActiveRecord::model()->getIsEavEnabled());
         $this->assertTrue($model->getIsEavEnabled());
 
-        $model = TestEavActiveRecord::model()->find('::datetimeSingle = :d', array(':d' => 'dd'));
+        $model = TestEavActiveRecord::model()->find('::datetimeSingle = :d', array(':d' => '2089-11-01 14:10:25'));
         $this->assertNull($model);
 
-        $model = TestEavActiveRecord::model()->withEavAttributes()->find('::datetimeSingle = :d', array(':d' => 'dd'));
+        $model = TestEavActiveRecord::model()->withEavAttributes()->find('::datetimeSingle = :d',
+            array(':d' => '2089-11-01 14:10:25'));
         $this->assertNull($model);
         $this->assertFalse(TestEavActiveRecord::model()->getIsEavEnabled());
     }
@@ -1084,7 +1107,7 @@ class TestEavActiveRecordTest extends CDbTestCase
 
     public function testFindAll()
     {
-        $model = TestEavActiveRecord::model()->withEavAttributes()->findAll();
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findAll(array('order' => 't.id ASC'));
         $this->assertEquals(6, count($model));
         $this->assertEquals('entity1-1-2012-11-01 10:10:25-eavEnabled', $model[0]->LastName);
         $this->assertEquals('entity4-6-eavEnabled', $model[5]->LastName);
@@ -1306,7 +1329,7 @@ class TestEavActiveRecordTest extends CDbTestCase
         $model->eav_set_id = 2;
 
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
-        $model->eav_set_id = '';
+        $model->eav_set_id = null;
         $this->assertFalse($model->hasEavAttribute('datetimeSingle'));
         $model->eav_set_id = 1;
         $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
@@ -1351,6 +1374,170 @@ class TestEavActiveRecordTest extends CDbTestCase
         $this->assertEquals(1, TestEavActiveRecord::model()->count('id = :id', array(':id' => 1)));
         $this->assertEquals(0, TestEavActiveRecord::model()->count('t.id = :id AND ::varcharMultiple = :d',
             array(':id' => 1, 'd' => 'one')));
+    }
+
+
+    public function testIssue3()
+    {
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
+        $model->id = 747;
+        $model->varcharMultiple = array(1);
+        $this->assertTrue($model->updateWithEavAttributes(array('name', 'eav_set_id', 'varcharMultiple')));
+
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
+        $this->assertInstanceOf('EavActiveRecord', $model);
+        $this->assertContains('1', $model->varcharMultiple);
+        $model->id = 777;
+        $model->updateWithEavAttributes();
+
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
+        $this->assertNull($model);
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(777);
+        $this->assertInstanceOf('EavActiveRecord', $model);
+        $this->assertContains('1', $model->varcharMultiple);
+        $model->id = 3;
+        $model->varcharMultiple = array(5,2,3);
+        $model->updateWithEavAttributes();
+
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
+        $this->assertInstanceOf('EavActiveRecord', $model);
+        $this->assertContains('2', $model->varcharMultiple);
+        $this->assertContains('5', $model->varcharMultiple);
+        $this->assertContains('3', $model->varcharMultiple);
+
+        $model = new TestEavActiveRecord();
+        $model->attachEavSet(1);
+        $model->datetimeSingle = '1997-12-12 12:12:12';
+        $model->id = 787;
+        $model->insertWithEavAttributes();
+
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(787);
+        $this->assertInstanceOf('EavActiveRecord', $model);
+        $this->assertEquals('1997-12-12 12:12:12', $model->datetimeSingle);
+    }
+
+
+    public function testAddDropColumn()
+    {
+        $model = TestEavActiveRecord::model();
+        $column = $model->tableSchema->getColumn('eav_set_id');
+        $this->assertInstanceOf('CDbColumnSchema', $column);
+        $this->assertTrue($column->isForeignKey);
+        $model->dropColumn();
+        $model->getDbConnection()->getSchema()->refresh();
+        $model->refreshMetaData();
+        $column = $model->tableSchema->getColumn('eav_set_id');
+        $this->assertNull($column);
+        $model->addColumn();
+        $model->getDbConnection()->getSchema()->refresh();
+        $model->refreshMetaData();
+        $column = $model->tableSchema->getColumn('eav_set_id');
+        $this->assertInstanceOf('CDbColumnSchema', $column);
+        $this->assertTrue($column->isForeignKey);
+    }
+
+
+    /**
+     * @covers EavActiveRecord::saveEavAttributes
+     */
+    public function testSaveEavAttributes()
+    {
+        //instantiated model does not support eav attributes
+        $flag = false;
+        try
+        {
+            $model = new TestEavActiveRecord();
+            $model->saveEavAttributes(array());
+        }
+        catch (CException $ex)
+        {
+            $flag = true;
+        }
+        $this->assertTrue($flag);
+
+        //new record exception
+        $flag = false;
+        try
+        {
+            $model = new TestEavActiveRecord();
+            $model->attachEavSet(1);
+            $model->saveEavAttributes(array());
+        }
+        catch (CException $ex)
+        {
+            $flag = true;
+        }
+        $this->assertTrue($flag);
+
+        //the list of attributes is empty
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(1);
+        $this->assertFalse($model->saveEavAttributes(array()));
+
+        //eav attributes are not included in the list
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
+        $this->assertFalse($model->saveEavAttributes(array('name' => 'bbb', 'atttr', 'attr2' => 15)));
+
+        //eav attributes are included in the list
+        $this->assertContains('one', $model->varcharMultiple);
+        $this->assertContains('two', $model->varcharMultiple);
+        $this->assertContains('three', $model->varcharMultiple);
+        $this->assertEquals('2015-11-01 14:10:25', $model->datetimeSingle);
+        $model->datetimeSingle = '2043-11-01 14:10:25';
+        $this->assertTrue($model->saveEavAttributes(array('datetimeSingle', 'varcharMultiple' => array(6, 2, 4))));
+        $this->assertContains('6', $model->varcharMultiple);
+        $this->assertContains('2', $model->varcharMultiple);
+        $this->assertContains('4', $model->varcharMultiple);
+        $this->assertEquals(3, count($model->varcharMultiple));
+        $this->assertEquals('2043-11-01 14:10:25', $model->datetimeSingle);
+        $model = TestEavActiveRecord::model()->withEavAttributes(true)->findByPk(3);
+        $this->assertContains('6', $model->varcharMultiple);
+        $this->assertContains('2', $model->varcharMultiple);
+        $this->assertContains('4', $model->varcharMultiple);
+        $this->assertEquals(3, count($model->varcharMultiple));
+        $this->assertEquals('2043-11-01 14:10:25', $model->datetimeSingle);
+
+        //updated set
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
+        $this->assertEquals('2', $model->getOldEavSetPrimaryKey());
+        $model->attachEavSet(1);
+        $this->assertEquals('2', $model->getOldEavSetPrimaryKey());
+        $this->assertFalse($model->hasEavAttribute('varcharMultiple'));
+        $this->assertTrue($model->hasEavAttribute('datetimeSingle'));
+        $this->assertEquals('2043-11-01 14:10:25', $model->datetimeSingle);
+        $count = $model->getDbConnection()->createCommand()->select('COUNT(*)')
+            ->from('eav_attribute_varchar')
+            ->where(array('and', 'entity = :e', 'entity_id = :ei'),
+                array(':e' => $model->getEntity(), ':ei' => $model->id))->queryScalar();
+
+        $this->assertTrue($model->saveEavAttributes(array('datetimeSingle' => '2063-11-01 14:10:25')));
+        $this->assertEquals('2063-11-01 14:10:25', $model->datetimeSingle);
+        $this->assertEquals('1', $model->getOldEavSetPrimaryKey());
+        $count = $model->getDbConnection()->createCommand()->select('COUNT(*)')->from('eav_attribute_varchar')
+            ->where(array('and', 'entity = :e', 'entity_id = :ei'), array(':e' => $model->getEntity(),
+            ':ei' => $model->id))->queryScalar();
+        $this->assertEquals(0, $count);
+
+        $model = TestEavActiveRecord::model()->withEavAttributes()->findByPk(3);
+        $this->assertEquals('1', $model->getOldEavSetPrimaryKey());
+        $this->assertEquals('2063-11-01 14:10:25', $model->datetimeSingle);
+        $this->datetimeSingle = '2018-11-01 14:10:25';
+        $this->assertTrue($model->saveEavAttributes(array('datetimeSingle' => '2053-11-01 14:10:25')));
+        $this->assertEquals('2053-11-01 14:10:25', $model->datetimeSingle);
+
+        $model = TestEavActiveRecord::model()->findByPk(3);
+        $this->assertFalse($model->getIsEavEnabled());
+        $this->assertEquals(1, $model->getOldEavSetPrimaryKey());
+        $model->attachEavSet(2);
+        $this->assertEquals('1', $model->getOldEavSetPrimaryKey());
+        $this->assertEquals('2053-11-01 14:10:25', $model->datetimeSingle);
+        $this->datetimeSingle = '2018-11-01 14:10:25';
+        $this->assertTrue($model->saveEavAttributes(array('varcharMultiple')));
+        $this->assertEquals('2', $model->getOldEavSetPrimaryKey());
+
+        $model = TestEavActiveRecord::model()->withEavAttributes(true)->findByPk(3);
+        $this->assertEquals('2', $model->getOldEavSetPrimaryKey());
+        $this->assertEquals(array(), $model->varcharMultiple);
+        $this->assertEquals('2053-11-01 14:10:25', $model->datetimeSingle);
     }
 
 }

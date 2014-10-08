@@ -11,10 +11,23 @@ class EavSetTest extends CDbTestCase
         'eav_set' => ':eav_set',
         'eav_attribute' => ':eav_attribute',
         'eav_attribute_set' => ':eav_attribute_set',
-        'eav_test_entity' => ':eav_test_entity',
-        'eav_attribute_date' => ':eav_attribute_date',
-        'eav_attribute_varchar' => ':eav_attribute_varchar',
     );
+
+
+    protected function setUp()
+    {
+        parent::setUp();
+        foreach ($this->fixtures as $key => $value)
+        {
+            Yii::app()->db->getSchema()->resetSequence(Yii::app()->db->getSchema()->getTable($key));
+        }
+    }
+
+
+    public function tearDown()
+    {
+        Yii::app()->db->active = false;
+    }
 
 
     public function testAddEavAttributeException1()
@@ -66,8 +79,6 @@ class EavSetTest extends CDbTestCase
         $this->assertEquals(3, count($attr));
         $this->assertEquals('varcharMultiple', $attr[2]->name);
         $this->assertEquals('testattr1', $attr[5]->name);
-
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 
@@ -99,7 +110,6 @@ class EavSetTest extends CDbTestCase
         $this->assertTrue($model->save());
         $attributes = $model->getRelated(EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME);
         $this->assertEquals(0, count($attributes));
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 
@@ -127,7 +137,30 @@ class EavSetTest extends CDbTestCase
         $this->assertArrayHasKey(1, $attributes);
         $this->assertArrayHasKey(2, $attributes);
         $this->assertArrayHasKey(3, $attributes);
+    }
 
-        Yii::app()->fixture->load($this->fixtures);
+
+    public function testGetMaxWeight()
+    {
+        $model = EavSet::model()->findByPk(2);
+        $this->assertEquals(2, $model->getMaxWeight());
+    }
+
+
+    public function testUpdateEavAttributeOrder()
+    {
+        $model = EavSet::model()->findByPk(2);
+        $attr = $model->getEavAttributes();
+        $keys = array_keys($attr);
+        $this->assertEquals(1, $keys[0]);
+        $this->assertEquals(2, $keys[1]);
+        $model->updateEavAttributeOrder(array(2,1));
+
+
+        $model = EavSet::model()->findByPk(2);
+        $attr = $model->getEavAttributes();
+        $keys = array_keys($attr);
+        $this->assertEquals(2, $keys[0]);
+        $this->assertEquals(1, $keys[1]);
     }
 } 

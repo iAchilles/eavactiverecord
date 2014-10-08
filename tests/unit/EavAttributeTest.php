@@ -7,10 +7,27 @@
 class EavAttributeTest extends CDbTestCase
 {
     public $fixtures = array(
+        'eav_set' => ':eav_set',
         'eav_attribute' => ':eav_attribute',
         'eav_attribute_set' => ':eav_attribute_set',
-        'eav_attribute_date' => ':eav_attribute_date',
+        'eav_attribute_date' => ':eav_attribute_date'
     );
+
+
+    protected function setUp()
+    {
+        parent::setUp();
+        foreach ($this->fixtures as $key => $value)
+        {
+            Yii::app()->db->getSchema()->resetSequence(Yii::app()->db->getSchema()->getTable($key));
+        }
+    }
+
+
+    public function tearDown()
+    {
+        Yii::app()->db->active = false;
+    }
 
 
     public function testSave()
@@ -73,8 +90,6 @@ class EavAttributeTest extends CDbTestCase
         $this->assertTrue($model->hasErrors('data_type'));
         $model->data_type = EavAttribute::DATA_TYPE_DATETIME;
         $this->assertTrue($model->save());
-
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 
@@ -150,7 +165,6 @@ class EavAttributeTest extends CDbTestCase
         $this->assertEquals(0, count($query2));
         $model = EavAttribute::model()->findByPk(1);
         $this->assertNull($model);
-        Yii::app()->fixture->load($this->fixtures);
     }
 
 } 

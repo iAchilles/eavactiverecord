@@ -2,13 +2,14 @@
 /*
  * TextDataType class file
  * @author Igor Manturov, Jr. <igor.manturov.jr@gmail.com>
+ * @link https://github.com/iAchilles/eavactiverecord/
  * @license http://opensource.org/licenses/MIT The MIT License (MIT)
  */
  
 /**
  * TextDataType class
  *
- * @version 1.0.0
+ * @since 1.0.0
  */
 class TextDataType extends EavValue
 {
