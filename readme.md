@@ -91,3 +91,24 @@ It adds the new column "eav_set_id" in the associated database table.
    ```php
 Foo::model()->addColumn();
 ```
+
+<br>
+##What's next?
+
+For detailed information on how to use the extension eavactiverecord, please read the following wiki articles:
+
+1. [Quick Start Guide](https://github.com/iAchilles/eavactiverecord/wiki/Quick-Start-Guide)
+1. [Manage EAV attributes](https://github.com/iAchilles/eavactiverecord/wiki/Manage-EAV-attributes)
+1. [Manage sets of EAV attributes](https://github.com/iAchilles/eavactiverecord/wiki/Manage-sets-of-EAV-attributes)
+1. [Using EAV attributes in the model](https://github.com/iAchilles/eavactiverecord/wiki/Using-EAV-attributes-in-the-model)
+   1. [Attaching EAV attributes to the model](https://github.com/iAchilles/eavactiverecord/wiki/Using-EAV-attributes-in-the-model#i)
+   1. [Assigning a value to the EAV attribute](https://github.com/iAchilles/eavactiverecord/wiki/Using-EAV-attributes-in-the-model#ii)
+   1. [Accessing the EAV attribute value](https://github.com/iAchilles/eavactiverecord/wiki/Using-EAV-attributes-in-the-model#iii)
+   1. [Saving the EAV attribute value](https://github.com/iAchilles/eavactiverecord/wiki/Using-EAV-attributes-in-the-model#iv)
+   1. [Deleting the EAV attribute value](https://github.com/iAchilles/eavactiverecord/wiki/Using-EAV-attributes-in-the-model#v)
+   1. [Eager and lazy loading of EAV attribute values](https://github.com/iAchilles/eavactiverecord/wiki/Using-EAV-attributes-in-the-model#vi)
+   1. [Searching by EAV attributes](https://github.com/iAchilles/eavactiverecord/wiki/Using-EAV-attributes-in-the-model#vii)
+   1. [Priority of attributes](https://github.com/iAchilles/eavactiverecord/wiki/Using-EAV-attributes-in-the-model#viii)
+1. [Creating form elements for EAV attributes using the widget EavForm](https://github.com/iAchilles/eavactiverecord/wiki/Creating-form-elements-for-EAV-attributes-using-the-widget-EavForm)
+1. [The API documentation](https://github.com/iAchilles/eavactiverecord/wiki/The-API-documentation)
+ 
