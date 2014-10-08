@@ -674,7 +674,7 @@ class EavActiveRecord extends CActiveRecord
      * @param array $attributes EAV attributes to be updated. Each element represents an EAV attribute name or an EAV
      * attribute value indexed by its name. If the latter, the record's EAV attribute will be changed accordingly before
      * saving.
-     * @return boolean
+     * @return boolean Whether the update is successful.
      * @throws CDbException If the active record is new.
      * @throws CException If the instantiated model does not support EAV attributes.
      * @since Version 1.0.1
@@ -927,7 +927,7 @@ class EavActiveRecord extends CActiveRecord
     /**
      * Checks if the model has the named EAV attribute.
      * @param string $name The attribute name.
-     * @return boolean Whether the model has the named EAV-attribute.
+     * @return boolean Whether the model has the named EAV attribute.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function hasEavAttribute($name)
@@ -989,7 +989,7 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Performs the validation for EAV-attributes.
+     * Performs the validation for EAV attributes.
      * @param array $attributes List of EAV attributes that should be validated. Defaults to null,
      * meaning any EAV attribute listed in the applicable validation rules should be validated. If this parameter is
      * given as a list of attributes, only the listed attributes will be validated.
@@ -1127,7 +1127,7 @@ class EavActiveRecord extends CActiveRecord
 
     /**
      * Returns all the EAV attribute validators.
-     * @return CList All the EA -attribute validators.
+     * @return CList All the EAV attribute validators.
      * @throws CException If the instantiated model does not support EAV attributes.
      */
     public function getEavValidatorList()
@@ -1261,7 +1261,7 @@ class EavActiveRecord extends CActiveRecord
      * $record->attacheEavSet(1); //Attaches the set of EAV attributes to the model
      * $record->setAttribute('eav_set_id', 1);
      * </pre>
-     * @param integer $pk The primary key value of an existing set of EAV-attributes, that must be attached to the model.
+     * @param integer $pk The primary key value of an existing set of EAV attributes, that must be attached to the model.
      */
     public function attachEavSet($pk)
     {
@@ -1270,7 +1270,7 @@ class EavActiveRecord extends CActiveRecord
 
 
     /**
-     * Detaches the set of EAV-attributes from the model.
+     * Detaches the set of EAV attributes from the model.
      */
     public function detachEavSet()
     {
