@@ -192,8 +192,9 @@ class EavAttribute extends CActiveRecord implements Serializable
      * $values = array(1 => 'One', 2 => 'Two');
      * $attribute->setPossibleValues($values);
      * </pre>
-     * @param array $values
-     * @throws CException
+     * @param array $values List of possible values (an associative array of value=>label pairs).
+     * @throws CException Passed wrong type of argument
+     * @since Version 1.0.2
      */
     public function setPossibleValues($values)
     {
@@ -214,6 +215,7 @@ class EavAttribute extends CActiveRecord implements Serializable
     /**
      * Returns the list of possible values for the attribute.
      * @return array The list of possible values.
+     * @since Version 1.0.2
      */
     public function getPossibleValues()
     {
