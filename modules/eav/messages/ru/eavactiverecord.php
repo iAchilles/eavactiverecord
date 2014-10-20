@@ -131,6 +131,7 @@ return array (
   'URL validator' => 'Проверка URL',
   'Unique value validator' => 'Проверка на уникальность',
   'Unsafe value' => 'Небезопасное значение',
+  'Validators' => 'Валидаторы',
   'Valid URI schemes' => 'Пригодные URI схемы',
   'Value trimming' => 'Обрезка значения',
   'Yes' => 'Да',

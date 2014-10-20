@@ -73,7 +73,7 @@
 
 <br>
 
-<h4>Validators</h4>
+<h4><?php echo Yii::t('EavModule.eavactiverecord', 'Validators') ?></h4>
 <hr>
 
 <div class="panel-group" id="accordion">
