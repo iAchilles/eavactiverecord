@@ -167,4 +167,17 @@ class EavAttributeTest extends CDbTestCase
         $this->assertNull($model);
     }
 
+
+    public function testPossibleValues()
+    {
+        $attribute = EavAttribute::model()->findByPk(1);
+        $values = array('a' => 'Alberta', 'b' => 'Banff', 'c' => 'Calgary');
+        $attribute->setPossibleValues($values);
+        $newvalues = $attribute->getPossibleValues();
+        $this->assertEquals($values, $newvalues);
+        $attribute->save();
+
+        $attribute = EavAttribute::model()->findByPk(1);
+        $this->assertEquals($values, $attribute->getPossibleValues());
+    }
 } 

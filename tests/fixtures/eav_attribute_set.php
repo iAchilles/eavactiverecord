@@ -25,4 +25,19 @@ return array(
         'eav_attribute_id' => 4,
         'weight' => 1
     ),
+    'attributeSet6' => array(
+        'eav_set_id' => 1000,
+        'eav_attribute_id' => 1000,
+        'weight' => 1
+    ),
+    'attributeSet7' => array(
+    'eav_set_id' => 1000,
+    'eav_attribute_id' => 1,
+    'weight' => 2
+    ),
+    'attributeSet8' => array(
+        'eav_set_id' => 1000,
+        'eav_attribute_id' => 4,
+        'weight' => 3
+    ),
 );

@@ -31,6 +31,7 @@ array(
      'import' => array(
      'application.components.eavactiverecord.*',
      'application.components.eavactiverecord.datatypes.*',
+     'application.components.eavactiverecord.helpers.*'
 )
 ```
 
@@ -92,7 +93,13 @@ It adds the new column "eav_set_id" in the associated database table.
 Foo::model()->addColumn();
 ```
 
+1. Since v1.0.2 it includes the GUI module for user interaction (front-end module) based on the extension API. For detailed information about installing the module, reed the [EavModule Installation Guide](https://github.com/iAchilles/eavactiverecord/wiki/EavModule-Installation-Guide)
+
+   <em style="float:right;">The screenshot of the module page is shown below</em>
+  ![EavModule screenshot](https://docs.google.com/uc?export=download&id=0B3d3iXSyCBTia2hnTUVNMkkwd0U)
+
 <br>
+
 ##What's next?
 
 For detailed information on how to use the extension eavactiverecord, please read the following wiki articles:

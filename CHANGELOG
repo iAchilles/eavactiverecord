@@ -1,6 +1,15 @@
 eavactiverecord Change Log
 ==========================
 
+Version 1.0.2 October 20, 2014
+------------------------------
+- New: Added the new method EavAttribute::getPossibleValues()
+- New: Added the new method EavAttribute::setPossibleValues()
+- New: Added the new class CountValidator
+- New: Added the new class MultivaluedValidator
+- New: Added the GUI module for user interaction (front-end module) based on the extension API
+- New: Added support for validators that validate multivalued attributes
+
 Version 1.0.1  October 8, 2014
 ------------------------------
 - Bug #2: Output EAV-attributes in wrong order.

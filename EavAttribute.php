@@ -187,6 +187,44 @@ class EavAttribute extends CActiveRecord implements Serializable
 
 
     /**
+     * Sets the list of possible values for the attribute. E.g. it can be used to create a drop-down list.
+     * <pre>
+     * $values = array(1 => 'One', 2 => 'Two');
+     * $attribute->setPossibleValues($values);
+     * </pre>
+     * @param array $values List of possible values (an associative array of value=>label pairs).
+     * @throws CException Passed wrong type of argument
+     * @since Version 1.0.2
+     */
+    public function setPossibleValues($values)
+    {
+        if (!is_array($values))
+        {
+            throw new CException('Argument 1 passed to ' .  __METHOD__
+                . '() must be an array.');
+        }
+        else
+        {
+            $data = $this->getUnserializedData();
+            $data['values'] = $values;
+            $this->setUnserializedData($data);
+        }
+    }
+
+
+    /**
+     * Returns the list of possible values for the attribute.
+     * @return array The list of possible values.
+     * @since Version 1.0.2
+     */
+    public function getPossibleValues()
+    {
+        $data = $this->getUnserializedData();
+        return isset($data['values']) ? $data['values'] : array();
+    }
+
+
+    /**
      * Adds validation rules for the EAV attribute.
      * <pre>
      * $rules = array(
@@ -314,7 +352,7 @@ class EavAttribute extends CActiveRecord implements Serializable
 
     /**
      * Returns the value of the property EavAttribute::$unserializeData.
-     * @return string Unserialized data.
+     * @return array Unserialized data.
      */
     protected function getUnserializedData()
     {
@@ -329,7 +367,7 @@ class EavAttribute extends CActiveRecord implements Serializable
     
     /**
      * Sets the value of the property EavAttribute::$unserializeData.
-     * @param string $data Serialized data.
+     * @param array $data Unserialized data.
      */
     protected function setUnserializedData($data)
     {

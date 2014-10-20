@@ -16,4 +16,8 @@ return array(
         'id' => 4,
         'name' => 'Set contains 2 attributes'
     ),
+    'set5' => array(
+        'id' => 1000,
+        'name' => 'Test set',
+    ),
 );

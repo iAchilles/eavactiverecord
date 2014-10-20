@@ -1000,6 +1000,26 @@ class TestEavActiveRecordTest extends CDbTestCase
         $this->assertFalse($model->validate());
         $model->varcharMultiple = array('abc', '123456789012345', 'abc', 'abc');
         $this->assertTrue($model->validate());
+
+        $model = new TestEavActiveRecord();
+        $model->attachEavSet(1000);
+        $this->assertTrue($model->validate(array()));
+        $this->assertTrue($model->validate(array('test')));
+        $model->setScenario('include');
+        $this->assertFalse($model->validate(array('test')));
+        $model->test = array('#FFFFFF');
+        $this->assertTrue($model->validate(array('test')));
+        $model->test = array('#FFFFFF', '#000000');
+        $this->assertTrue($model->validate(array('test')));
+        $model->test = array('#FFFFFF', '#000001');
+        $this->assertFalse($model->validate(array('test')));
+        $model->datetimeSingle = 'abc';
+        $this->assertTrue($model->validate(array('datetimeSingle')));
+        $this->assertFalse($model->validate(array('datetimeSingle', 'test')));
+        $model->test = array('#FFFFFF', '#000000', '#FFFFFF', '#000000', '#FFFFFF', '#000000');
+        $this->assertFalse($model->validate(array('test')));
+        $model->test = array('#FFFFFF', '#000000', '#FFFFFF');
+        $this->assertTrue($model->validate(array('test')));
     }
 
 
@@ -1167,8 +1187,9 @@ class TestEavActiveRecordTest extends CDbTestCase
             ->findAllByAttributes(array(), '::varcharMultiple = :v OR ::datetimeSingle = :v1',
                 array(':v' => 'one', ':v1' => '2012-11-01 10:10:25'));
         $this->assertEquals(2, count($model));
-        $this->assertEquals('entity2-3-2015-11-01 14:10:25-eavEnabled', $model[1]->LastName);
-        $this->assertEquals('entity1-1-2012-11-01 10:10:25-eavEnabled', $model[0]->LastName);
+        $array = array($model[0]->LastName, $model[1]->LastName);
+        $this->assertContains('entity2-3-2015-11-01 14:10:25-eavEnabled', $array);
+        $this->assertContains('entity1-1-2012-11-01 10:10:25-eavEnabled', $array);
         $this->assertFalse(TestEavActiveRecord::model()->getIsEavEnabled());
 
         $model = TestEavActiveRecord::model()->withEavAttributes(true)

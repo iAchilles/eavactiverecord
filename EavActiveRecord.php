@@ -1013,12 +1013,10 @@ class EavActiveRecord extends CActiveRecord
                 $keys = array_keys($attr);
                 $name = $attr[$keys[0]];
 
-                if ($this->isEavAttributeMultivalued($name) && (is_null($attributes)
-                        || in_array($name, $attributes))
-                )
+                if ($this->isEavAttributeMultivalued($name) && !($validator instanceof MultivaluedValidator))
                 {
                     $originalValue = $this->getEavAttribute($name);
-                    if (empty($originalValue))
+                    if (is_array($originalValue) && empty($originalValue))
                     {
                         $this->newEavAttributes[$name] = null;
                         $validator->validate($this, $attributes);

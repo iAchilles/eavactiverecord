@@ -63,22 +63,26 @@ class EavSetTest extends CDbTestCase
 
         $model = new EavSet();
         $model->name = 'Test111';
+
         $model->addEavAttribute(1);
         $model->addEavAttribute(EavAttribute::model()->findByPk(2));
+
         $attr = new EavAttribute();
         $attr->name = 'testattr1';
         $attr->type = EavAttribute::TYPE_SINGLE;
         $attr->data_type = EavAttribute::DATA_TYPE_INT;
         $model->addEavAttribute($attr);
+
         $attr2 = new EavAttribute();
         $attr2->name = 'testre';
         $model->addEavAttribute($attr2);
+
         $this->assertTrue($model->save());
-        $attr = $model->getRelated(EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME);
-        $this->assertEquals('datetimeSingle', $attr[1]->name);
-        $this->assertEquals(3, count($attr));
-        $this->assertEquals('varcharMultiple', $attr[2]->name);
-        $this->assertEquals('testattr1', $attr[5]->name);
+        $attrs = $model->getRelated(EavActiveRecord::EAV_ATTRIBUTE_RELATION_NAME);
+        $this->assertEquals('datetimeSingle', $attrs[1]->name);
+        $this->assertEquals(3, count($attrs));
+        $this->assertEquals('varcharMultiple', $attrs[2]->name);
+        $this->assertEquals('testattr1', $attrs[$attr->id]->name);
     }
 
 
