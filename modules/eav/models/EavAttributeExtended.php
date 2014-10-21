@@ -145,6 +145,8 @@ class EavAttributeExtended extends EavAttribute
             self::DATA_TYPE_INT => Yii::t('EavModule.eavactiverecord', 'Integer'),
             self::DATA_TYPE_TEXT => Yii::t('EavModule.eavactiverecord', 'Text'),
             self::DATA_TYPE_VARCHAR => Yii::t('EavModule.eavactiverecord', 'String'),
+            self::DATA_TYPE_NUMERIC => Yii::t('EavModule.eavactiverecord', 'Numeric'),
+            self::DATA_TYPE_MONEY => Yii::t('EavModule.eavactiverecord', 'Money'),
         );
     }
 
