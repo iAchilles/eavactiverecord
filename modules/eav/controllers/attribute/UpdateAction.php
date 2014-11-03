@@ -34,13 +34,14 @@ class UpdateAction extends CAction
         }
 
         $validator->setValidatorInputs($_POST);
-        $model->attributes = $request->getPost($formName);
+        $attributes = $request->getPost($formName);
+        $model->attributes = $attributes;
         $model->setRules($validator->getRules());
-        $values = $request->getPost($formName);
-        $model->setValues($values['values']);
+        $model->setValues($attributes['values']);
 
         if ($model->validate() && empty($model->validatorErrors))
         {
+            $model->assignPossibleValues();
             if ($model->save(false))
             {
                 Yii::app()->getComponent('user')->setFlash('success', Yii::t('EavModule.eavactiverecord', 'The attribute has been successfully updated'));

@@ -27,7 +27,7 @@ class EavAttributeExtended extends EavAttribute
     public function rules()
     {
         return array_merge(parent::rules(), array(
-           array('values', 'safe'),
+           array('values', 'valuesValidator'),
            array('name', 'unique', 'className' => 'EavAttribute', 'attributeName' => 'name'),
         ));
     }
@@ -48,28 +48,6 @@ class EavAttributeExtended extends EavAttribute
     public function setValues($values)
     {
         $this->values = $values;
-        if ($values === '')
-        {
-            return;
-        }
-
-        $values = preg_split('/[\s,]+/', $values, -1, PREG_SPLIT_NO_EMPTY);
-        $key = array();
-        $value = array();
-
-        for ($i = 0; $i < count($values); $i++)
-        {
-            if (($i + 1) % 2 === 0)
-            {
-                $val = str_replace('+', ' ', $values[$i]);
-                $value[] = $val;
-            }
-            else
-            {
-                $key[] = $values[$i];
-            }
-        }
-        $this->setPossibleValues(array_combine($key, $value));
     }
 
 
@@ -100,6 +78,34 @@ class EavAttributeExtended extends EavAttribute
         }
 
         return $this->values;
+    }
+
+
+    public function assignPossibleValues()
+    {
+        if ($this->values === '')
+        {
+            return;
+        }
+
+        $values = $this->values;
+        $values = preg_split('/[\s,]+/', $values, -1, PREG_SPLIT_NO_EMPTY);
+        $key = array();
+        $value = array();
+
+        for ($i = 0; $i < count($values); $i++)
+        {
+            if (($i + 1) % 2 === 0)
+            {
+                $val = str_replace('+', ' ', $values[$i]);
+                $value[] = $val;
+            }
+            else
+            {
+                $key[] = $values[$i];
+            }
+        }
+        $this->setPossibleValues(array_combine($key, $value));
     }
 
 
@@ -157,6 +163,21 @@ class EavAttributeExtended extends EavAttribute
             self::TYPE_SINGLE => Yii::t('EavModule.eavactiverecord', 'Single-valued'),
             self::TYPE_MULTIPLE => Yii::t('EavModule.eavactiverecord', 'Multiple-valued')
         );
+    }
+
+
+    public function valuesValidator($attribute, $params)
+    {
+        if ($this->$attribute === '')
+        {
+            return;
+        }
+
+        $values = preg_split('/[\s,]+/', $this->$attribute, -1, PREG_SPLIT_NO_EMPTY);
+        if (count($values) % 2 != 0)
+        {
+            $this->addError($attribute, Yii::t('EavModule.eavactiverecord', 'The number of values is not equal to the number of labels'));
+        }
     }
 
 

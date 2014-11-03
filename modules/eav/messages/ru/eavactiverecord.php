@@ -19,7 +19,7 @@
 return array (
   'A comma separated list of scenarios' => 'Список сценариев через запятую',
   'A comma separated list of values' => 'Список значений через запятую',
-  'A space separated list of pairs "value label"' => 'Список пар "значение - заголовок" через пробел',
+  'A space separated list of pairs "value label"' => 'Список пар "значение заголовок" через пробел',
   'A validation error has occurred while processing your request' => 'Произошла ошибка валидации при выполнении запроса',
   'A validation fault message' => 'Сообщение при неуспешной валидации',
   'Allow empty value' => 'Разрешить пустое значение',
@@ -118,6 +118,7 @@ return array (
   'The maximum length' => 'Максимальная длина',
   'The minimum length' => 'Минимальная длина',
   'The name of the attribute to be compared with' => 'Имя атрибута со значением которого будет произведено сравнение',
+  'The number of values is not equal to the number of labels' => 'Количество значений не соответствует количеству заголовков',
   'The operator used for comparison' => 'Оператор используемый для сравнения',
   'The regular expression for matching integers' => 'Регулярное выражение для целых чисел',
   'The regular expression for matching numbers' => 'Регулярное выражение для любых чисел',
