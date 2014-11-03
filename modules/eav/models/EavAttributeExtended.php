@@ -158,4 +158,18 @@ class EavAttributeExtended extends EavAttribute
             self::TYPE_MULTIPLE => Yii::t('EavModule.eavactiverecord', 'Multiple-valued')
         );
     }
+
+
+    protected function afterSave()
+    {
+        $attribute = new EavAttribute();
+        $attribute->id = $this->id;
+        $attribute->name = $this->name;
+        $attribute->label = $this->label;
+        $attribute->type = $this->type;
+        $attribute->data_type = $this->data_type;
+        $attribute->data = $this->data;
+        $attribute->setIsNewRecord(false);
+        $this->setCacheEavAttribute($attribute);
+    }
 } 
