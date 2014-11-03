@@ -58,6 +58,7 @@ return array (
   'Enabled' => 'Вкл.',
   'Encoding' => 'Кодировка',
   'Except scenarios' => 'Исключить сценарии',
+  'Existed value' => 'Существующее значение',
   'Filter' => 'Фильтр',
   'Include scenarios' => 'Включить сценарии',
   'Include the sender\'s name in the email' => 'Имя отправителя в Email',

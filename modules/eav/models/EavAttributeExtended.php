@@ -139,7 +139,8 @@ class EavAttributeExtended extends EavAttribute
             'date' => Yii::t('EavModule.eavactiverecord', 'Date validator'),
             'safe' => Yii::t('EavModule.eavactiverecord', 'Safe value'),
             'unsafe' => Yii::t('EavModule.eavactiverecord', 'Unsafe value'),
-            'CountValidator' => Yii::t('EavModule.eavactiverecord', 'Count validator')
+            'exist' => Yii::t('EavModule.eavactiverecord', 'Existed value'),
+            'CountValidator' => Yii::t('EavModule.eavactiverecord', 'Count validator'),
         );
     }
 
