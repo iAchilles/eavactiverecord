@@ -21,8 +21,9 @@
  * $attribute2->type = EavAttribute::TYPE_MULTIPLE; //This attribute can hold multiple values.
  * </pre>
  *
- * There are four data types of EAV-attribute values (surely, you can create own data types): 'IntDataType', 'VarcharDataType',
- * 'DatetimeDataType' and 'TextDataType'. The name of the data type must be equal to a class name that is derived from
+ * There are six data types of EAV attribute values (surely, you can create own data types): 'IntDataType', 'VarcharDataType',
+ * 'DatetimeDataType', 'TextDataType', 'MoneyDataType' and 'NumericDataType' (the last two data types were added since version 1.0.3).
+ * The name of the data type must be equal to a class name that is derived from
  * the class EavValue. The value of the EAV attribute is stored as a record in a table that is based on the attribute
  * data type. It uses separate tables for each data type.
  * If the value of the attribute must be stored in an integer, you must use the constant EavAttribute::DATA_TYPE_INT
@@ -32,8 +33,9 @@
  * $attribute->data_type = EavAttribute::DATA_TYPE_INT; //Values of this attribute will be stored in an integer.
  * </pre>
  * To specify a data type of an attribute you can use constants EavAttribute::DATA_TYPE_INT ('IntDataType'),
- * EavAttribute::DATA_TYPE_DATETIME ('DatetimeDataType'), EavAttribute::DATA_TYPE_TEXT ('TextDataType')
- * and EavAttribute::DATA_TYPE_VARCHAR ('VarcharDataType').
+ * EavAttribute::DATA_TYPE_DATETIME ('DatetimeDataType'), EavAttribute::DATA_TYPE_TEXT ('TextDataType'),
+ * EavAttribute::DATA_TYPE_VARCHAR ('VarcharDataType'), EavAttribute::DATA_TYPE_NUMERIC ('NumericDataType'),
+ * EavAttribute::DATA_TYPE_MONEY ('MoneyDataType').
  *
  * The name of the EAV-attribute must be unique and follow PHP variable naming convention
  * (http://php.net/manual/en/language.variables.basics.php). The following name of the attribute is invalid:
@@ -77,7 +79,8 @@
  * EavAttribute::TYPE_MULTIPLE to assign a value to this property.
  * @property string $data_type The attribute value data type. It must contain a name of a class that is derived from
  * the class EavValue. You can use constants EavAttribute::DATA_TYPE_INT, EavAttribute::DATA_TYPE_DATETIME,
- * EavAttribute::DATA_TYPE_TEXT and EavAttribute::DATA_TYPE_VARCHAR to assign a value to this property.
+ * EavAttribute::DATA_TYPE_TEXT, EavAttribute::DATA_TYPE_VARCHAR, EavAttribute::DATA_TYPE_NUMERIC and
+ * EavAttribute::DATA_TYPE_MONEY to assign a value to this property.
  * @property string $name The attribute name. Must be unique and follow PHP variable naming convention.
  * @property string $label The attribute label.
  * @property string $data  Serialized data is stored and recovered using PHP's serialize() and unserialize() functions.
@@ -95,6 +98,10 @@ class EavAttribute extends CActiveRecord implements Serializable
     const DATA_TYPE_DATETIME = 'DatetimeDataType';
 
     const DATA_TYPE_TEXT = 'TextDataType';
+
+    const DATA_TYPE_NUMERIC = 'NumericDataType';
+
+    const DATA_TYPE_MONEY = 'MoneyDataType';
 
     const TYPE_SINGLE = 0;
     

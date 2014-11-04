@@ -27,7 +27,7 @@ class EavAttributeExtended extends EavAttribute
     public function rules()
     {
         return array_merge(parent::rules(), array(
-           array('values', 'safe'),
+           array('values', 'valuesValidator'),
            array('name', 'unique', 'className' => 'EavAttribute', 'attributeName' => 'name'),
         ));
     }
@@ -48,28 +48,6 @@ class EavAttributeExtended extends EavAttribute
     public function setValues($values)
     {
         $this->values = $values;
-        if ($values === '')
-        {
-            return;
-        }
-
-        $values = preg_split('/[\s,]+/', $values, -1, PREG_SPLIT_NO_EMPTY);
-        $key = array();
-        $value = array();
-
-        for ($i = 0; $i < count($values); $i++)
-        {
-            if (($i + 1) % 2 === 0)
-            {
-                $val = str_replace('+', ' ', $values[$i]);
-                $value[] = $val;
-            }
-            else
-            {
-                $key[] = $values[$i];
-            }
-        }
-        $this->setPossibleValues(array_combine($key, $value));
     }
 
 
@@ -103,6 +81,34 @@ class EavAttributeExtended extends EavAttribute
     }
 
 
+    public function assignPossibleValues()
+    {
+        if ($this->values === '')
+        {
+            return;
+        }
+
+        $values = $this->values;
+        $values = preg_split('/[\s,]+/', $values, -1, PREG_SPLIT_NO_EMPTY);
+        $key = array();
+        $value = array();
+
+        for ($i = 0; $i < count($values); $i++)
+        {
+            if (($i + 1) % 2 === 0)
+            {
+                $val = str_replace('+', ' ', $values[$i]);
+                $value[] = $val;
+            }
+            else
+            {
+                $key[] = $values[$i];
+            }
+        }
+        $this->setPossibleValues(array_combine($key, $value));
+    }
+
+
     public function setValidatorErrors($validator)
     {
         $this->validatorErrors[] = $validator;
@@ -133,7 +139,8 @@ class EavAttributeExtended extends EavAttribute
             'date' => Yii::t('EavModule.eavactiverecord', 'Date validator'),
             'safe' => Yii::t('EavModule.eavactiverecord', 'Safe value'),
             'unsafe' => Yii::t('EavModule.eavactiverecord', 'Unsafe value'),
-            'CountValidator' => Yii::t('EavModule.eavactiverecord', 'Count validator')
+            'exist' => Yii::t('EavModule.eavactiverecord', 'Existed value'),
+            'CountValidator' => Yii::t('EavModule.eavactiverecord', 'Count validator'),
         );
     }
 
@@ -145,6 +152,8 @@ class EavAttributeExtended extends EavAttribute
             self::DATA_TYPE_INT => Yii::t('EavModule.eavactiverecord', 'Integer'),
             self::DATA_TYPE_TEXT => Yii::t('EavModule.eavactiverecord', 'Text'),
             self::DATA_TYPE_VARCHAR => Yii::t('EavModule.eavactiverecord', 'String'),
+            self::DATA_TYPE_NUMERIC => Yii::t('EavModule.eavactiverecord', 'Numeric'),
+            self::DATA_TYPE_MONEY => Yii::t('EavModule.eavactiverecord', 'Money'),
         );
     }
 
@@ -155,5 +164,34 @@ class EavAttributeExtended extends EavAttribute
             self::TYPE_SINGLE => Yii::t('EavModule.eavactiverecord', 'Single-valued'),
             self::TYPE_MULTIPLE => Yii::t('EavModule.eavactiverecord', 'Multiple-valued')
         );
+    }
+
+
+    public function valuesValidator($attribute, $params)
+    {
+        if ($this->$attribute === '')
+        {
+            return;
+        }
+
+        $values = preg_split('/[\s,]+/', $this->$attribute, -1, PREG_SPLIT_NO_EMPTY);
+        if (count($values) % 2 != 0)
+        {
+            $this->addError($attribute, Yii::t('EavModule.eavactiverecord', 'The number of values is not equal to the number of labels'));
+        }
+    }
+
+
+    protected function afterSave()
+    {
+        $attribute = new EavAttribute();
+        $attribute->id = $this->id;
+        $attribute->name = $this->name;
+        $attribute->label = $this->label;
+        $attribute->type = $this->type;
+        $attribute->data_type = $this->data_type;
+        $attribute->data = $this->data;
+        $attribute->setIsNewRecord(false);
+        $this->setCacheEavAttribute($attribute);
     }
 } 

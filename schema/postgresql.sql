@@ -4,6 +4,8 @@ CREATE SEQUENCE eav_attribute_date_id_sequence;
 CREATE SEQUENCE eav_attribute_varchar_id_sequence;
 CREATE SEQUENCE eav_attribute_int_id_sequence;
 CREATE SEQUENCE eav_attribute_text_id_sequence;
+CREATE SEQUENCE eav_attribute_numeric_id_sequence;
+CREATE SEQUENCE eav_attribute_money_id_sequence;
 
 CREATE TABLE eav_set (
   id integer NOT NULL DEFAULT NEXTVAL('eav_set_id_sequence') PRIMARY KEY,
@@ -58,6 +60,22 @@ CREATE TABLE eav_attribute_text (
   value text
 );
 
+CREATE TABLE eav_attribute_numeric (
+  id integer NOT NULL DEFAULT NEXTVAL('eav_attribute_numeric_id_sequence') PRIMARY KEY,
+  eav_attribute_id integer NOT NULL REFERENCES eav_attribute(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  entity_id integer NOT NULL,
+  entity character varying(255) NOT NULL,
+  value double precision NOT NULL
+);
+
+CREATE TABLE eav_attribute_money (
+  id integer NOT NULL DEFAULT NEXTVAL('eav_attribute_money_id_sequence') PRIMARY KEY,
+  eav_attribute_id integer NOT NULL REFERENCES eav_attribute(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  entity_id integer NOT NULL,
+  entity character varying(255) NOT NULL,
+  value DECIMAL(13,2) NOT NULL
+);
+
 CREATE INDEX no_eav_attribute_set_attribute_id ON eav_attribute_set(eav_attribute_id);
 CREATE INDEX no_eav_attribute_set_set_id ON eav_attribute_set(eav_set_id);
 CREATE INDEX no_eav_attribute_set_weight ON eav_attribute_set(weight);
@@ -71,9 +89,15 @@ CREATE INDEX no_eav_attribute_int_eav_attribute_id ON eav_attribute_int(eav_attr
 CREATE INDEX no_eav_attribute_int_value ON eav_attribute_int(value);
 CREATE INDEX no_eav_attribute_text_entity_entity_id ON eav_attribute_text(entity, entity_id);
 CREATE INDEX no_eav_attribute_text_eav_attribute_id ON eav_attribute_text(eav_attribute_id);
+CREATE INDEX no_eav_attribute_numeric_entity_entity_id ON eav_attribute_numeric(entity, entity_id);
+CREATE INDEX no_eav_attribute_numeric_eav_attribute_id ON eav_attribute_numeric(eav_attribute_id);
+CREATE INDEX no_eav_attribute_money_entity_entity_id ON eav_attribute_money(entity, entity_id);
+CREATE INDEX no_eav_attribute_money_eav_attribute_id ON eav_attribute_money(eav_attribute_id);
 ALTER SEQUENCE eav_set_id_sequence OWNED BY eav_set.id;
 ALTER SEQUENCE eav_attribute_id_sequence OWNED BY eav_attribute.id;
 ALTER SEQUENCE eav_attribute_date_id_sequence OWNED BY eav_attribute_date.id;
 ALTER SEQUENCE eav_attribute_varchar_id_sequence OWNED BY eav_attribute_varchar.id;
 ALTER SEQUENCE eav_attribute_text_id_sequence OWNED BY eav_attribute_text.id;
 ALTER SEQUENCE eav_attribute_int_id_sequence OWNED BY eav_attribute_int.id;
+ALTER SEQUENCE eav_attribute_numeric_id_sequence OWNED BY eav_attribute_numeric.id;
+ALTER SEQUENCE eav_attribute_money_id_sequence OWNED BY eav_attribute_money.id;

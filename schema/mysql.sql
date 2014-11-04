@@ -76,3 +76,27 @@ CREATE TABLE `eav_attribute_text` (
   KEY `no_eav_attribute_text_eav_attribute_id` (`eav_attribute_id`) USING BTREE,
   CONSTRAINT `fk_eav_attribute_id_eav_attribute_text` FOREIGN KEY (`eav_attribute_id`) REFERENCES `eav_attribute` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `eav_attribute_numeric` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary surrogate key',
+  `eav_attribute_id` int(10) unsigned NOT NULL COMMENT 'Foreign key references eav_attribute(id)',
+  `entity_id` int(11) NOT NULL COMMENT 'Primary key of an entity',
+  `entity` varchar(255) NOT NULL COMMENT 'The entity name',
+  `value` double NOT NULL COMMENT 'The value of the attribute',
+  PRIMARY KEY (`id`),
+  KEY `no_eav_attribute_numeric_entity_entity_id` (`entity`,`entity_id`) USING BTREE,
+  KEY `no_eav_attribute_numeric_eav_attribute_id` (`eav_attribute_id`) USING BTREE,
+  CONSTRAINT `fk_eav_attribute_id_eav_attribute_numeric` FOREIGN KEY (`eav_attribute_id`) REFERENCES `eav_attribute` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `eav_attribute_money` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary surrogate key',
+  `eav_attribute_id` int(10) unsigned NOT NULL COMMENT 'Foreign key references eav_attribute(id)',
+  `entity_id` int(11) NOT NULL COMMENT 'Primary key of an entity',
+  `entity` varchar(255) NOT NULL COMMENT 'The entity name',
+  `value` DECIMAL(13,2) NOT NULL COMMENT 'The value of the attribute',
+  PRIMARY KEY (`id`),
+  KEY `no_eav_attribute_money_entity_entity_id` (`entity`,`entity_id`) USING BTREE,
+  KEY `no_eav_attribute_money_eav_attribute_id` (`eav_attribute_id`) USING BTREE,
+  CONSTRAINT `fk_eav_attribute_id_eav_attribute_money` FOREIGN KEY (`eav_attribute_id`) REFERENCES `eav_attribute` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
