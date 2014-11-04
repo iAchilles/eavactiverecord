@@ -1,6 +1,13 @@
 eavactiverecord Change Log
 ==========================
 
+Version 1.0.3 November 4, 2014
+------------------------------
+- Bug #7: The settings are not available for the bundled validator CExistValidator
+- Bug #8: The class EavAttributeExtended should use composition instead of inheritance
+- Bug #9: array_combine(): Both parameters should have an equal number of elements
+- New: Added MoneyDataType, NumericDataType
+
 Version 1.0.2 October 20, 2014
 ------------------------------
 - New: Added the new method EavAttribute::getPossibleValues()
