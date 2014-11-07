@@ -423,22 +423,23 @@ class EavActiveRecord extends CActiveRecord
                                 }
                             }
 
-                            if ((is_null($modelAttributes) && !is_null($this->eav_set_id))
-                                || (in_array('eav_set_id', $modelAttributes) && !is_null($this->eav_set_id))
-                            )
+                            if (is_null($modelAttributes) || in_array('eav_set_id', $modelAttributes))
                             {
-                                $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
-                                    : $this->getEavAttributes($eavAttributes);
-
-                                foreach ($attributes as $name => $value)
+                                if (!is_null($this->eav_set_id))
                                 {
-                                    $attribute = $this->eavAttributeInstances[$name];
-                                    $class = EavValue::model($attribute->data_type);
-                                    $class->insertValue($this, $attribute, $value);
-                                    $this->oldEavAttributes[$name] = $value;
+                                    $attributes = is_null($eavAttributes) ? $this->getEavAttributes()
+                                        : $this->getEavAttributes($eavAttributes);
+
+                                    foreach ($attributes as $name => $value)
+                                    {
+                                        $attribute = $this->eavAttributeInstances[$name];
+                                        $class = EavValue::model($attribute->data_type);
+                                        $class->insertValue($this, $attribute, $value);
+                                        $this->oldEavAttributes[$name] = $value;
+                                    }
+                                    $this->setOldEavSetPrimaryKey();
+                                    $this->storedEavAttributeInstances = $this->eavAttributeInstances;
                                 }
-                                $this->setOldEavSetPrimaryKey();
-                                $this->storedEavAttributeInstances = $this->eavAttributeInstances;
                             }
 
                             if (isset($transaction))

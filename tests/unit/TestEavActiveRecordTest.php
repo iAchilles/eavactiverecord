@@ -642,6 +642,21 @@ class TestEavActiveRecordTest extends CDbTestCase
 
         $this->assertEquals(0, count($query1));
         $this->assertEquals(0, count($query2));
+
+        $model = new TestEavActiveRecord();
+        $model->attachEavSet(null);
+        $model->name = 'test1-2';
+        $model->insertWithEavAttributes(array('name', 'eav_set_id'));
+
+        $model = new TestEavActiveRecord();
+        $model->attachEavSet(null);
+        $model->name = 'test1-3';
+        $model->insertWithEavAttributes();
+
+        $model = new TestEavActiveRecord();
+        $model->attachEavSet(3);
+        $model->name = 'test1-4';
+        $model->insertWithEavAttributes();
     }
 
 
