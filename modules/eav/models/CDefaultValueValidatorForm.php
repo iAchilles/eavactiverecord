@@ -17,7 +17,7 @@ class CDefaultValueValidatorForm extends BaseValidatorForm
 
     public $setOnEmpty = true;
 
-    public $value;
+    public $value = '';
 
     private $attribute;
 
@@ -27,6 +27,7 @@ class CDefaultValueValidatorForm extends BaseValidatorForm
         return array_merge(parent::rules(), array(
             array('setOnEmpty', 'boolean', 'trueValue' => 'true', 'falseValue' => 'false'),
             array('value', 'required'),
+            array('value', 'filter', 'filter' => array($this, 'convertType'), 'skipOnError' => true)
         ));
     }
 
@@ -67,6 +68,37 @@ class CDefaultValueValidatorForm extends BaseValidatorForm
     }
 
 
+    public function convertType($value)
+    {
+        $value = trim($value);
+
+        if (ctype_digit($value))
+        {
+            return CPropertyValue::ensureInteger($value);
+        }
+
+        if (is_numeric($value))
+        {
+            return CPropertyValue::ensureFloat($value);
+        }
+
+        if (strcasecmp($value, 'null') == 0)
+        {
+            return null;
+        }
+        else if (strcasecmp($value, 'true') == 0 || strcasecmp($value, 'false') == 0)
+        {
+            return CPropertyValue::ensureBoolean($value);
+        }
+        else if (preg_match('/^\(.+\)|\(\)$/', $value))
+        {
+            return CPropertyValue::ensureArray($value);
+        }
+
+        return $value;
+    }
+
+
     private function prepareInput($attributes)
     {
         $preparedAttributes = array();
@@ -82,6 +114,22 @@ class CDefaultValueValidatorForm extends BaseValidatorForm
                 if (is_array($value))
                 {
                     $preparedAttributes[$key] = implode(', ', $value);
+                }
+            }
+
+            if ($key === 'value')
+            {
+                if ($value === true || $value === false)
+                {
+                    $preparedAttributes[$key] = CPropertyValue::ensureString($value);
+                }
+                else if (is_null($value))
+                {
+                    $preparedAttributes[$key] = 'null';
+                }
+                else if (is_array($value))
+                {
+                    $preparedAttributes[$key] = trim(str_replace('array', '', var_export($value, true)));
                 }
             }
         }
