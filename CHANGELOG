@@ -1,6 +1,11 @@
 eavactiverecord Change Log
 ==========================
 
+Version 1.0.3 November 19, 2014
+-------------------------------
+- Bug #11: The method EavActiveRecord::saveWithEavAttributes() failed
+- Enh #12: Add type conversion for some string values
+
 Version 1.0.3 November 4, 2014
 ------------------------------
 - Bug #7: The settings are not available for the bundled validator CExistValidator
